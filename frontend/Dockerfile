@@ -9,7 +9,7 @@
 # ------------------------------
 # Stage 1: Dependencies
 # ------------------------------
-FROM node:22-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 
 # Install dependencies only when needed
@@ -19,7 +19,7 @@ RUN npm install --legacy-peer-deps
 # ------------------------------
 # Stage 2: Builder
 # ------------------------------
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 # Build arguments for Next.js public env vars (must be set at build time)
@@ -43,7 +43,7 @@ RUN npm run build
 # ------------------------------
 # Stage 3: Production
 # ------------------------------
-FROM node:22-alpine AS production
+FROM node:25-alpine AS production
 
 LABEL maintainer="Kypraios Chariton"
 LABEL project="EllinCRM - Frontend"
