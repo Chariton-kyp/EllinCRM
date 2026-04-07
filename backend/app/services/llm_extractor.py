@@ -1,4 +1,4 @@
-"""LLM-based document extraction using Gemini Flash via LiteLLM.
+"""LLM-based document extraction using Gemini Flash via any-llm (Mozilla.ai).
 
 Extracts structured data from forms, emails, and invoices with per-field
 confidence scores. Uses ai_completion_json() for model calls with automatic
@@ -106,7 +106,7 @@ def _to_decimal(value) -> Decimal | None:
 # ---------------------------------------------------------------------------
 
 class LLMExtractor:
-    """LLM-based document extraction using Gemini Flash via LiteLLM."""
+    """LLM-based document extraction using Gemini Flash via any-llm (Mozilla.ai)."""
 
     DEFAULT_MODEL = "gemini-flash"
 

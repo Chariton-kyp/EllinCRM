@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
     logger.info("starting_embedding_model_background_loading")
     start_embedding_model_loading()
 
-    # Initialize LiteLLM AI router (non-blocking, graceful degradation)
+    # Initialize any-llm AI router (non-blocking, graceful degradation)
     logger.info("initializing_ai_router")
     init_ai_router()
 

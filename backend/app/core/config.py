@@ -69,7 +69,7 @@ class Settings(BaseSettings):
         description="HuggingFace access token for gated models"
     )
 
-    # LLM API Keys (for LiteLLM Router)
+    # LLM API Keys (for any-llm router)
     google_api_key: str = ""
     anthropic_api_key: str = ""
 

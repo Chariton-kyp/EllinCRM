@@ -29,7 +29,10 @@ pgvector>=0.3.0
 numpy>=1.26.0
 
 # LLM Router
-litellm>=1.81.0
+# Replaced litellm after March 2026 TeamPCP supply-chain compromise (CVE-2026-35029).
+# any-llm calls official provider SDKs (anthropic, google-genai) directly — no central proxy.
+# Pinned to 1.0.* (not >=) for supply-chain hygiene.
+any-llm[anthropic,gemini]==1.0.*
 
 # Logging
 structlog>=24.4.0
