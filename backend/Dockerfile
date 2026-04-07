@@ -9,7 +9,7 @@
 # ------------------------------
 # Stage 1: Builder
 # ------------------------------
-FROM python:3.13-slim-bookworm AS builder
+FROM python:3.14-slim-bookworm AS builder
 
 WORKDIR /build
 
@@ -26,7 +26,7 @@ RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 # ------------------------------
 # Stage 2: Production
 # ------------------------------
-FROM python:3.13-slim-bookworm AS production
+FROM python:3.14-slim-bookworm AS production
 
 # Labels
 LABEL maintainer="Kypraios Chariton"

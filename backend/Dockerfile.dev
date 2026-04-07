@@ -6,7 +6,7 @@
 # Author: Kypraios Chariton (Κυπραίος Χαρίτων)
 # ========================================
 
-FROM python:3.13-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 # Labels
 LABEL maintainer="Kypraios Chariton"
