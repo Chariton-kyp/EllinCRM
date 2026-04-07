@@ -1,0 +1,55 @@
+# syntax=docker/dockerfile:1
+# ========================================
+# EllinCRM - Backend
+# Development Dockerfile (Hot Reload)
+# ========================================
+# Author: Kypraios Chariton (Κυπραίος Χαρίτων)
+# ========================================
+
+FROM python:3.13-slim-bookworm
+
+# Labels
+LABEL maintainer="Kypraios Chariton"
+LABEL project="EllinCRM - Backend API (Development)"
+LABEL version="1.0.0"
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    PIP_NO_CACHE_DIR=1 \
+    APP_ENV=development
+
+WORKDIR /app
+
+# Install development dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code (will be overridden by volume mount in dev)
+COPY app/ ./app/
+COPY tests/ ./tests/
+
+# Copy Alembic configuration
+COPY alembic.ini ./
+COPY alembic/ ./alembic/
+
+# Copy coverage and pytest configuration
+COPY .coveragerc pyproject.toml ./
+
+# Create directories
+RUN mkdir -p /app/output /app/data
+
+# Expose port
+EXPOSE 8000
+
+# Default command - run with uvicorn in reload mode
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

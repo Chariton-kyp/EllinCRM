@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Φόρμα Επικοινωνίας - Ιατρικό Κέντρο Υγεία</title>
+</head>
+<body>
+    <h2>Αίτημα για Σύστημα Ραντεβού Ασθενών</h2>
+    <form action="/submit" method="POST">
+        <div>
+            <label>Όνομα και Επώνυμο:</label>
+            <input type="text" name="full_name" value="Δρ. Άννα Γεωργίου" readonly>
+        </div>
+
+        <div>
+            <label>Email:</label>
+            <input type="email" name="email" value="anna.georgiou@iatriko-ygeia.gr" readonly>
+        </div>
+
+        <div>
+            <label>Τηλέφωνο:</label>
+            <input type="tel" name="phone" value="210-7654321" readonly>
+        </div>
+
+        <div>
+            <label>Εταιρεία:</label>
+            <input type="text" name="company" value="Ιατρικό Κέντρο Υγεία" readonly>
+        </div>
+
+        <div>
+            <label>Υπηρεσία Ενδιαφέροντος:</label>
+            <select name="service" disabled>
+                <option value="crm" selected>CRM System</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Μήνυμα:</label>
+            <textarea name="message" readonly>Καλημέρα, είμαι η Δρ. Γεωργίου και διευθύνω το Ιατρικό Κέντρο "Υγεία" στη Γλυφάδα. Δεχόμαστε 40-50 ασθενείς ημερησίως σε 3 ειδικότητες (παθολογία, καρδιολογία, ορθοπεδική). Χρειαζόμαστε ηλεκτρονικό σύστημα κλεισίματος ραντεβού, υπενθυμίσεις μέσω SMS, και ψηφιακό ιστορικό ασθενών. Πρέπει να είναι σύμφωνο με τον GDPR. Μπορείτε να μας στείλετε προσφορά;</textarea>
+        </div>
+
+        <div>
+            <label>Ημερομηνία Υποβολής:</label>
+            <input type="datetime-local" name="submission_date" value="2025-02-03T16:45" readonly>
+        </div>
+
+        <div>
+            <label>Προτεραιότητα:</label>
+            <select name="priority" disabled>
+                <option value="high" selected>Υψηλή</option>
+            </select>
+        </div>
+    </form>
+</body>
+</html>

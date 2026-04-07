@@ -1,0 +1,137 @@
+# =============================================================================
+# EllinCRM — Git Ignore Configuration
+# =============================================================================
+
+# =============================================================================
+# SECURITY: Sensitive Files — NEVER COMMIT
+# =============================================================================
+
+# Environment files (real credentials)
+.env
+.env.*
+!.env.example
+
+# Service account / API credentials
+**/credentials/*.json
+!**/credentials/*.example.json
+!**/credentials/README.md
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+.secrets
+
+# =============================================================================
+# Private Development Artifacts (NOT for public repo)
+# =============================================================================
+
+# Internal planning, strategy, business notes — keep local only
+.planning/
+CLAUDE.md
+
+# Claude Code workspace
+.claude/
+
+# Playwright MCP session logs
+.playwright-mcp/
+
+# Local screenshots & demo media
+*.png
+!frontend/public/**/*.png
+!frontend/public/**/*.svg
+!docs/assets/**/*.png
+
+# Git history bundles (backups)
+*.bundle
+
+# =============================================================================
+# Python
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+/backend/lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# MyPy / Ruff
+.mypy_cache/
+.ruff_cache/
+
+# =============================================================================
+# Node.js / Next.js
+# =============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next/
+out/
+.turbo
+*.tsbuildinfo
+
+# =============================================================================
+# Editors / OS
+# =============================================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# =============================================================================
+# Logs / Temp
+# =============================================================================
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# =============================================================================
+# Application output (runtime exports)
+# =============================================================================
+output/
+
+# =============================================================================
+# AI/ML Models (large files)
+# =============================================================================
+*.h5
+*.pkl
+*.joblib
+models/
+!models/.gitkeep
+.cache/huggingface/

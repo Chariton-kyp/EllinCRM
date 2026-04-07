@@ -1,0 +1,95 @@
+{
+  "name": "EllinCRM - AI Document Automation",
+  "short_name": "EllinCRM",
+  "description": "AI-powered document extraction automation with human-in-the-loop controls",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "el",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Dashboard with real-time statistics"
+    },
+    {
+      "src": "/screenshots/extraction.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Data extraction interface"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Extract Data",
+      "short_name": "Extract",
+      "description": "Start new data extraction",
+      "url": "/extraction",
+      "icons": [{ "src": "/icons/extract-shortcut.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Review Records",
+      "short_name": "Records",
+      "description": "Review pending records",
+      "url": "/records?status=pending",
+      "icons": [{ "src": "/icons/records-shortcut.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

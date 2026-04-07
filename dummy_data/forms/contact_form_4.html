@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Φόρμα Επικοινωνίας - Ξενοδοχείο Αιγαίο</title>
+</head>
+<body>
+    <h2>Αίτημα για Μηχανή Κρατήσεων</h2>
+    <form action="/submit" method="POST">
+        <div>
+            <label>Όνομα και Επώνυμο:</label>
+            <input type="text" name="full_name" value="Κωνσταντίνος Νικολαΐδης" readonly>
+        </div>
+
+        <div>
+            <label>Email:</label>
+            <input type="email" name="email" value="info@hotelAigaio.gr" readonly>
+        </div>
+
+        <div>
+            <label>Τηλέφωνο:</label>
+            <input type="tel" name="phone" value="6972345678" readonly>
+        </div>
+
+        <div>
+            <label>Εταιρεία:</label>
+            <input type="text" name="company" value="Ξενοδοχείο Αιγαίο" readonly>
+        </div>
+
+        <div>
+            <label>Υπηρεσία Ενδιαφέροντος:</label>
+            <select name="service" disabled>
+                <option value="e-commerce" selected>E-commerce</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Μήνυμα:</label>
+            <textarea name="message" readonly>Γεια σας, είμαι ο ιδιοκτήτης του ξενοδοχείου "Αιγαίο" στην Κηφισιά, μπουτίκ ξενοδοχείο 25 δωματίων. Ψάχνουμε για booking engine που να ενσωματώνεται στο website μας και να συγχρονίζεται με Booking.com και Airbnb. Θέλουμε αυτόματη διαχείριση τιμών ανάλογα με τη σεζόν και πληρότητα. Επίσης χρειαζόμαστε σύστημα check-in/check-out. Η σεζόν ξεκινάει Απρίλιο, οπότε θέλουμε να είμαστε έτοιμοι μέχρι Μάρτιο.</textarea>
+        </div>
+
+        <div>
+            <label>Ημερομηνία Υποβολής:</label>
+            <input type="datetime-local" name="submission_date" value="2025-01-28T10:00" readonly>
+        </div>
+
+        <div>
+            <label>Προτεραιότητα:</label>
+            <select name="priority" disabled>
+                <option value="high" selected>Υψηλή</option>
+            </select>
+        </div>
+    </form>
+</body>
+</html>

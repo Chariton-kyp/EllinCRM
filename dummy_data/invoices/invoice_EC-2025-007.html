@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Τιμολόγιο EC-2025-007</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .company { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .invoice-details { margin: 20px 0; }
+        .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .invoice-table th, .invoice-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .invoice-table th { background-color: #f2f2f2; }
+        .total-row { font-weight: bold; background-color: #e8f4f8; }
+        .summary { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company">Δικηγορικό Γραφείο Παπαδοπούλου και Συνεργατών</div>
+        <div>Ακαδημίας 67, 10678 Κολωνάκι, Αθήνα</div>
+        <div>ΑΦΜ: 234567890 | ΔΟΥ: Δ' Αθηνών</div>
+        <div>Τηλ: 210-3456789 | Email: maria@dikigorikopapadopoulos.gr</div>
+    </div>
+
+    <div class="invoice-details">
+        <h2>ΤΙΜΟΛΟΓΙΟ ΠΑΡΟΧΗΣ ΥΠΗΡΕΣΙΩΝ</h2>
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <strong>Αριθμός:</strong> EC-2025-007<br>
+                <strong>Ημερομηνία:</strong> 15/02/2025<br>
+                <strong>Τρόπος Πληρωμής:</strong> Τραπεζικό Έμβασμα
+            </div>
+            <div>
+                <strong>Πελάτης:</strong><br>
+                ΕλληνΚατασκευές ΑΕ<br>
+                Λεωφ. Μεσογείων 280<br>
+                15562 Χολαργός<br>
+                ΑΦΜ: 567890123
+            </div>
+        </div>
+    </div>
+
+    <table class="invoice-table">
+        <thead>
+            <tr>
+                <th>Περιγραφή Υπηρεσίας</th>
+                <th>Ποσότητα</th>
+                <th>Τιμή Μονάδας</th>
+                <th>Σύνολο</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Νομική γνωμοδότηση σύμβασης ανακαίνισης</td>
+                <td>1</td>
+                <td>€800.00</td>
+                <td>€800.00</td>
+            </tr>
+            <tr>
+                <td>Σύνταξη συμβολαίου υπεργολαβίας</td>
+                <td>2</td>
+                <td>€450.00</td>
+                <td>€900.00</td>
+            </tr>
+            <tr>
+                <td>Παράσταση σε δημόσιο φορέα (αδειοδοτήσεις)</td>
+                <td>3</td>
+                <td>€200.00</td>
+                <td>€600.00</td>
+            </tr>
+            <tr>
+                <td>Νομικός έλεγχος εργατικής νομοθεσίας</td>
+                <td>1</td>
+                <td>€500.00</td>
+                <td>€500.00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <table style="width: 300px; margin-left: auto;">
+            <tr>
+                <td><strong>Καθαρή Αξία:</strong></td>
+                <td style="text-align: right;"><strong>€2,800.00</strong></td>
+            </tr>
+            <tr>
+                <td><strong>ΦΠΑ 24%:</strong></td>
+                <td style="text-align: right;"><strong>€672.00</strong></td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>ΣΥΝΟΛΟ:</strong></td>
+                <td style="text-align: right;"><strong>€3,472.00</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top: 40px; font-size: 12px;">
+        <p><strong>Σημειώσεις:</strong> Αφορά νομικές υπηρεσίες Ιανουαρίου-Φεβρουαρίου 2025</p>
+        <p><strong>Όροι:</strong> Πληρωμή εντός 15 ημερών</p>
+    </div>
+</body>
+</html>

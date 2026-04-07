@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Τιμολόγιο EC-2025-005</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .company { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .invoice-details { margin: 20px 0; }
+        .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .invoice-table th, .invoice-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .invoice-table th { background-color: #f2f2f2; }
+        .total-row { font-weight: bold; background-color: #e8f4f8; }
+        .summary { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company">Ιατρικό Κέντρο Υγεία</div>
+        <div>Λεωφ. Βουλιαγμένης 340, 16675 Γλυφάδα</div>
+        <div>ΑΦΜ: 678901234 | ΔΟΥ: Γλυφάδας</div>
+        <div>Τηλ: 210-7654321 | Email: info@iatriko-ygeia.gr</div>
+    </div>
+
+    <div class="invoice-details">
+        <h2>ΑΠΟΔΕΙΞΗ ΠΑΡΟΧΗΣ ΥΠΗΡΕΣΙΩΝ</h2>
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <strong>Αριθμός:</strong> EC-2025-005<br>
+                <strong>Ημερομηνία:</strong> 05/02/2025<br>
+                <strong>Τρόπος Πληρωμής:</strong> Κάρτα
+            </div>
+            <div>
+                <strong>Πελάτης:</strong><br>
+                Αθανάσιος Βλάχος<br>
+                Ποσειδώνος 88<br>
+                16674 Γλυφάδα<br>
+                ΑΦΜ: 112233445
+            </div>
+        </div>
+    </div>
+
+    <table class="invoice-table">
+        <thead>
+            <tr>
+                <th>Περιγραφή</th>
+                <th>Ποσότητα</th>
+                <th>Τιμή Μονάδας</th>
+                <th>Σύνολο</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Καρδιολογική εξέταση (ηλεκτροκαρδιογράφημα)</td>
+                <td>1</td>
+                <td>€60.00</td>
+                <td>€60.00</td>
+            </tr>
+            <tr>
+                <td>Αιματολογικές εξετάσεις (γενική αίματος, λιπιδαιμικό)</td>
+                <td>1</td>
+                <td>€45.00</td>
+                <td>€45.00</td>
+            </tr>
+            <tr>
+                <td>Κλινική εξέταση παθολόγου</td>
+                <td>1</td>
+                <td>€50.00</td>
+                <td>€50.00</td>
+            </tr>
+            <tr>
+                <td>Triplex καρδιάς</td>
+                <td>1</td>
+                <td>€25.00</td>
+                <td>€25.00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <table style="width: 300px; margin-left: auto;">
+            <tr>
+                <td><strong>Καθαρή Αξία:</strong></td>
+                <td style="text-align: right;"><strong>€180.00</strong></td>
+            </tr>
+            <tr>
+                <td><strong>ΦΠΑ 24%:</strong></td>
+                <td style="text-align: right;"><strong>€43.20</strong></td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>ΣΥΝΟΛΟ:</strong></td>
+                <td style="text-align: right;"><strong>€223.20</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top: 40px; font-size: 12px;">
+        <p><strong>Σημειώσεις:</strong> Επόμενο ραντεβού: 05/08/2025 (εξαμηνιαίος επανέλεγχος)</p>
+        <p><strong>Ιατρός:</strong> Δρ. Άννα Γεωργίου - Καρδιολόγος</p>
+    </div>
+</body>
+</html>

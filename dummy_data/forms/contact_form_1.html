@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Φόρμα Επικοινωνίας - Ταβέρνα Ο Παράδεισος</title>
+</head>
+<body>
+    <h2>Αίτημα για Ιστοσελίδα και Online Παραγγελίες</h2>
+    <form action="/submit" method="POST">
+        <div>
+            <label>Όνομα και Επώνυμο:</label>
+            <input type="text" name="full_name" value="Νίκος Παπαδόπουλος" readonly>
+        </div>
+
+        <div>
+            <label>Email:</label>
+            <input type="email" name="email" value="nikos@tavernaparadeisos.gr" readonly>
+        </div>
+
+        <div>
+            <label>Τηλέφωνο:</label>
+            <input type="tel" name="phone" value="6945123456" readonly>
+        </div>
+
+        <div>
+            <label>Εταιρεία:</label>
+            <input type="text" name="company" value="Ταβέρνα Ο Παράδεισος" readonly>
+        </div>
+
+        <div>
+            <label>Υπηρεσία Ενδιαφέροντος:</label>
+            <select name="service" disabled>
+                <option value="web_development" selected>Ανάπτυξη Website</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Μήνυμα:</label>
+            <textarea name="message" readonly>Καλησπέρα σας, είμαστε η ταβέρνα "Ο Παράδεισος" στην Πλάκα και θέλουμε να φτιάξουμε μια ιστοσελίδα με σύστημα online παραγγελιών. Έχουμε περίπου 80 πιάτα στο μενού μας και θέλουμε οι πελάτες να μπορούν να παραγγέλνουν για delivery και take-away. Επίσης θέλουμε κράτηση τραπεζιού online. Είναι επείγον γιατί ξεκινάει η τουριστική σεζόν.</textarea>
+        </div>
+
+        <div>
+            <label>Ημερομηνία Υποβολής:</label>
+            <input type="datetime-local" name="submission_date" value="2025-01-20T11:30" readonly>
+        </div>
+
+        <div>
+            <label>Προτεραιότητα:</label>
+            <select name="priority" disabled>
+                <option value="high" selected>Υψηλή</option>
+            </select>
+        </div>
+    </form>
+</body>
+</html>

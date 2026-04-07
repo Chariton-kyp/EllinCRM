@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Τιμολόγιο EC-2025-003</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .company { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .invoice-details { margin: 20px 0; }
+        .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .invoice-table th, .invoice-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .invoice-table th { background-color: #f2f2f2; }
+        .total-row { font-weight: bold; background-color: #e8f4f8; }
+        .summary { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company">ΕλληνΚατασκευές ΑΕ</div>
+        <div>Λεωφ. Μεσογείων 280, 15562 Χολαργός</div>
+        <div>ΑΦΜ: 567890123 | ΔΟΥ: Χολαργού</div>
+        <div>Τηλ: 210-8901234 | Email: info@ellinkataskeues.gr</div>
+    </div>
+
+    <div class="invoice-details">
+        <h2>ΤΙΜΟΛΟΓΙΟ ΠΑΡΟΧΗΣ ΥΠΗΡΕΣΙΩΝ</h2>
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <strong>Αριθμός:</strong> EC-2025-003<br>
+                <strong>Ημερομηνία:</strong> 25/01/2025<br>
+                <strong>Τρόπος Πληρωμής:</strong> Τραπεζικό Έμβασμα
+            </div>
+            <div>
+                <strong>Πελάτης:</strong><br>
+                Ξενοδοχείο Αιγαίο<br>
+                Λεωφ. Κηφισίας 210<br>
+                14562 Κηφισιά<br>
+                ΑΦΜ: 789012345
+            </div>
+        </div>
+    </div>
+
+    <table class="invoice-table">
+        <thead>
+            <tr>
+                <th>Περιγραφή</th>
+                <th>Ποσότητα</th>
+                <th>Τιμή Μονάδας</th>
+                <th>Σύνολο</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Ανακαίνιση δωματίων (τεμάχια)</td>
+                <td>10</td>
+                <td>€1,800.00</td>
+                <td>€18,000.00</td>
+            </tr>
+            <tr>
+                <td>Αντικατάσταση υδραυλικών εγκαταστάσεων</td>
+                <td>1</td>
+                <td>€5,500.00</td>
+                <td>€5,500.00</td>
+            </tr>
+            <tr>
+                <td>Ηλεκτρολογικές εργασίες αναβάθμισης</td>
+                <td>1</td>
+                <td>€4,200.00</td>
+                <td>€4,200.00</td>
+            </tr>
+            <tr>
+                <td>Βαφή εξωτερικών χώρων (τ.μ.)</td>
+                <td>350</td>
+                <td>€12.00</td>
+                <td>€4,200.00</td>
+            </tr>
+            <tr>
+                <td>Διαμόρφωση κήπου και περιβάλλοντος χώρου</td>
+                <td>1</td>
+                <td>€3,100.00</td>
+                <td>€3,100.00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <table style="width: 300px; margin-left: auto;">
+            <tr>
+                <td><strong>Καθαρή Αξία:</strong></td>
+                <td style="text-align: right;"><strong>€35,000.00</strong></td>
+            </tr>
+            <tr>
+                <td><strong>ΦΠΑ 24%:</strong></td>
+                <td style="text-align: right;"><strong>€8,400.00</strong></td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>ΣΥΝΟΛΟ:</strong></td>
+                <td style="text-align: right;"><strong>€43,400.00</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top: 40px; font-size: 12px;">
+        <p><strong>Σημειώσεις:</strong> Πληρωμή σε 3 δόσεις: 40% προκαταβολή, 30% μετά τη β' φάση, 30% στην παράδοση</p>
+        <p><strong>Εγγύηση:</strong> 5 χρόνια εγγύηση καλής εκτέλεσης</p>
+    </div>
+</body>
+</html>

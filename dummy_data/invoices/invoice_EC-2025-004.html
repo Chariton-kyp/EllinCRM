@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Τιμολόγιο EC-2025-004</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .company { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .invoice-details { margin: 20px 0; }
+        .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .invoice-table th, .invoice-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .invoice-table th { background-color: #f2f2f2; }
+        .total-row { font-weight: bold; background-color: #e8f4f8; }
+        .summary { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company">Λογιστικό Γραφείο Οικονομίδης</div>
+        <div>Λεωφ. Πεντέλης 45, 15234 Χαλάνδρι</div>
+        <div>ΑΦΜ: 345678901 | ΔΟΥ: Χαλανδρίου</div>
+        <div>Τηλ: 210-6789012 | Email: giorgos@logistiko-oikonomidis.gr</div>
+    </div>
+
+    <div class="invoice-details">
+        <h2>ΤΙΜΟΛΟΓΙΟ ΠΑΡΟΧΗΣ ΥΠΗΡΕΣΙΩΝ</h2>
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <strong>Αριθμός:</strong> EC-2025-004<br>
+                <strong>Ημερομηνία:</strong> 31/01/2025<br>
+                <strong>Τρόπος Πληρωμής:</strong> Τραπεζικό Έμβασμα
+            </div>
+            <div>
+                <strong>Πελάτης:</strong><br>
+                Ταβέρνα Ο Παράδεισος<br>
+                Αδριανού 52<br>
+                10558 Πλάκα, Αθήνα<br>
+                ΑΦΜ: 123456789
+            </div>
+        </div>
+    </div>
+
+    <table class="invoice-table">
+        <thead>
+            <tr>
+                <th>Περιγραφή Υπηρεσίας</th>
+                <th>Ποσότητα</th>
+                <th>Τιμή Μονάδας</th>
+                <th>Σύνολο</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Μηνιαία λογιστική παρακολούθηση Ιανουαρίου</td>
+                <td>1</td>
+                <td>€200.00</td>
+                <td>€200.00</td>
+            </tr>
+            <tr>
+                <td>Υποβολή ΦΠΑ περιόδου</td>
+                <td>1</td>
+                <td>€50.00</td>
+                <td>€50.00</td>
+            </tr>
+            <tr>
+                <td>Μισθοδοσία (4 εργαζόμενοι)</td>
+                <td>1</td>
+                <td>€80.00</td>
+                <td>€80.00</td>
+            </tr>
+            <tr>
+                <td>Συμβουλευτική φορολογικού σχεδιασμού</td>
+                <td>1</td>
+                <td>€20.00</td>
+                <td>€20.00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <table style="width: 300px; margin-left: auto;">
+            <tr>
+                <td><strong>Καθαρή Αξία:</strong></td>
+                <td style="text-align: right;"><strong>€350.00</strong></td>
+            </tr>
+            <tr>
+                <td><strong>ΦΠΑ 24%:</strong></td>
+                <td style="text-align: right;"><strong>€84.00</strong></td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>ΣΥΝΟΛΟ:</strong></td>
+                <td style="text-align: right;"><strong>€434.00</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top: 40px; font-size: 12px;">
+        <p><strong>Σημειώσεις:</strong> Μηνιαία πάγια χρέωση - ανανέωση αυτόματη</p>
+        <p><strong>Επόμενη τιμολόγηση:</strong> 28/02/2025</p>
+    </div>
+</body>
+</html>

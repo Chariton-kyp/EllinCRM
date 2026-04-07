@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Τιμολόγιο EC-2025-001</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .company { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .invoice-details { margin: 20px 0; }
+        .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .invoice-table th, .invoice-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .invoice-table th { background-color: #f2f2f2; }
+        .total-row { font-weight: bold; background-color: #e8f4f8; }
+        .summary { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company">Ταβέρνα Ο Παράδεισος</div>
+        <div>Αδριανού 52, 10558 Πλάκα, Αθήνα</div>
+        <div>ΑΦΜ: 123456789 | ΔΟΥ: Α' Αθηνών</div>
+        <div>Τηλ: 6945123456 | Email: nikos@tavernaparadeisos.gr</div>
+    </div>
+
+    <div class="invoice-details">
+        <h2>ΤΙΜΟΛΟΓΙΟ ΑΓΟΡΑΣ</h2>
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <strong>Αριθμός:</strong> EC-2025-001<br>
+                <strong>Ημερομηνία:</strong> 15/01/2025<br>
+                <strong>Τρόπος Πληρωμής:</strong> Μετρητά
+            </div>
+            <div>
+                <strong>Πελάτης:</strong><br>
+                Προμηθευτής Τροφίμων Α.Ε.<br>
+                Λ. Αθηνών 234<br>
+                18540 Πειραιάς<br>
+                ΑΦΜ: 998877665
+            </div>
+        </div>
+    </div>
+
+    <table class="invoice-table">
+        <thead>
+            <tr>
+                <th>Περιγραφή</th>
+                <th>Ποσότητα</th>
+                <th>Τιμή Μονάδας</th>
+                <th>Σύνολο</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Ελαιόλαδο εξαιρετικό παρθένο Κρήτης (λίτρα)</td>
+                <td>40</td>
+                <td>€9.50</td>
+                <td>€380.00</td>
+            </tr>
+            <tr>
+                <td>Φέτα ΠΟΠ Μυτιλήνης (κιλά)</td>
+                <td>25</td>
+                <td>€8.80</td>
+                <td>€220.00</td>
+            </tr>
+            <tr>
+                <td>Κρέας μοσχαρίσιο νωπό (κιλά)</td>
+                <td>30</td>
+                <td>€12.00</td>
+                <td>€360.00</td>
+            </tr>
+            <tr>
+                <td>Φρέσκα ψάρια ημέρας (κιλά)</td>
+                <td>20</td>
+                <td>€18.50</td>
+                <td>€370.00</td>
+            </tr>
+            <tr>
+                <td>Λαχανικά εποχής βιολογικά (κιβώτια)</td>
+                <td>15</td>
+                <td>€22.00</td>
+                <td>€330.00</td>
+            </tr>
+            <tr>
+                <td>Κρασί χύμα λευκό Νεμέας (λίτρα)</td>
+                <td>50</td>
+                <td>€3.50</td>
+                <td>€175.00</td>
+            </tr>
+            <tr>
+                <td>Ψωμί χωριάτικο (τεμάχια)</td>
+                <td>100</td>
+                <td>€1.15</td>
+                <td>€115.00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <table style="width: 300px; margin-left: auto;">
+            <tr>
+                <td><strong>Καθαρή Αξία:</strong></td>
+                <td style="text-align: right;"><strong>€1,950.00</strong></td>
+            </tr>
+            <tr>
+                <td><strong>ΦΠΑ 24%:</strong></td>
+                <td style="text-align: right;"><strong>€468.00</strong></td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>ΣΥΝΟΛΟ:</strong></td>
+                <td style="text-align: right;"><strong>€2,418.00</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top: 40px; font-size: 12px;">
+        <p><strong>Σημειώσεις:</strong> Παράδοση κάθε Δευτέρα και Πέμπτη 07:00-09:00</p>
+        <p><strong>Όροι:</strong> Πληρωμή εντός 15 ημερών</p>
+    </div>
+</body>
+</html>

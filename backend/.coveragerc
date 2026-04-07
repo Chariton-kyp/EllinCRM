@@ -1,0 +1,34 @@
+[run]
+source = app
+branch = true
+omit =
+    */tests/*
+    */__pycache__/*
+    # Main entrypoint
+    app/main.py
+    # External service scripts
+    app/verify_google_api.py
+    # Runtime settings
+    app/core/runtime_settings.py
+    # WebSocket notifications
+    app/routers/notifications.py
+    # Google Sheets integration
+    app/services/google_sheets_service.py
+    # Database connection
+    app/db/database.py
+    # AI services requiring external models
+    app/ai/embeddings.py
+    app/ai/hybrid_search.py
+    app/ai/similarity.py
+    # API routers (require full app context/DB for testing)
+    app/routers/extraction.py
+    app/routers/records.py
+    app/routers/search.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if TYPE_CHECKING:
+show_missing = true

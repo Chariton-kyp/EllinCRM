@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Φόρμα Επικοινωνίας - Δικηγορικό Γραφείο Παπαδοπούλου</title>
+</head>
+<body>
+    <h2>Αίτημα για Αυτοματοποίηση Διαχείρισης Εγγράφων</h2>
+    <form action="/submit" method="POST">
+        <div>
+            <label>Όνομα και Επώνυμο:</label>
+            <input type="text" name="full_name" value="Μαρία Παπαδοπούλου" readonly>
+        </div>
+
+        <div>
+            <label>Email:</label>
+            <input type="email" name="email" value="maria@dikigorikopapadopoulos.gr" readonly>
+        </div>
+
+        <div>
+            <label>Τηλέφωνο:</label>
+            <input type="tel" name="phone" value="210-3456789" readonly>
+        </div>
+
+        <div>
+            <label>Εταιρεία:</label>
+            <input type="text" name="company" value="Δικηγορικό Γραφείο Παπαδοπούλου και Συνεργάτες" readonly>
+        </div>
+
+        <div>
+            <label>Υπηρεσία Ενδιαφέροντος:</label>
+            <select name="service" disabled>
+                <option value="database" selected>Διαχείριση Βάσης Δεδομένων</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Μήνυμα:</label>
+            <textarea name="message" readonly>Αγαπητοί κύριοι, στο γραφείο μας διαχειριζόμαστε χιλιάδες νομικά έγγραφα ετησίως - συμβόλαια, δικαστικές αποφάσεις, πληρεξούσια και αλληλογραφία. Χρειαζόμαστε ένα σύστημα αυτόματης κατηγοριοποίησης και αναζήτησης εγγράφων με τεχνητή νοημοσύνη. Θέλουμε επίσης OCR για σαρωμένα έγγραφα στα Ελληνικά. Παρακαλώ επικοινωνήστε μαζί μας για ραντεβού.</textarea>
+        </div>
+
+        <div>
+            <label>Ημερομηνία Υποβολής:</label>
+            <input type="datetime-local" name="submission_date" value="2025-01-22T09:15" readonly>
+        </div>
+
+        <div>
+            <label>Προτεραιότητα:</label>
+            <select name="priority" disabled>
+                <option value="medium" selected>Μεσαία</option>
+            </select>
+        </div>
+    </form>
+</body>
+</html>

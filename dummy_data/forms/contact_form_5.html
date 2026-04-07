@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Φόρμα Επικοινωνίας - ΕλληνΚατασκευές ΑΕ</title>
+</head>
+<body>
+    <h2>Αίτημα για Εργαλείο Διαχείρισης Έργων</h2>
+    <form action="/submit" method="POST">
+        <div>
+            <label>Όνομα και Επώνυμο:</label>
+            <input type="text" name="full_name" value="Δημήτρης Αλεξόπουλος" readonly>
+        </div>
+
+        <div>
+            <label>Email:</label>
+            <input type="email" name="email" value="d.alexopoulos@ellinkataskeues.gr" readonly>
+        </div>
+
+        <div>
+            <label>Τηλέφωνο:</label>
+            <input type="tel" name="phone" value="210-8901234" readonly>
+        </div>
+
+        <div>
+            <label>Εταιρεία:</label>
+            <input type="text" name="company" value="ΕλληνΚατασκευές ΑΕ" readonly>
+        </div>
+
+        <div>
+            <label>Υπηρεσία Ενδιαφέροντος:</label>
+            <select name="service" disabled>
+                <option value="erp" selected>ERP Integration</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Μήνυμα:</label>
+            <textarea name="message" readonly>Αγαπητοί συνεργάτες, η εταιρεία μας διαχειρίζεται 8-12 κατασκευαστικά έργα ταυτόχρονα σε όλη την Αττική. Χρειαζόμαστε σύστημα project management με παρακολούθηση χρονοδιαγραμμάτων, κοστολόγηση υλικών, διαχείριση υπεργολάβων και αυτόματη δημιουργία αναφορών προόδου. Θέλουμε επίσης integration με το λογιστικό μας πρόγραμμα. Διαθέτουμε 30 εργαζόμενους γραφείου και 120 στα εργοτάξια.</textarea>
+        </div>
+
+        <div>
+            <label>Ημερομηνία Υποβολής:</label>
+            <input type="datetime-local" name="submission_date" value="2025-02-10T14:00" readonly>
+        </div>
+
+        <div>
+            <label>Προτεραιότητα:</label>
+            <select name="priority" disabled>
+                <option value="medium" selected>Μεσαία</option>
+            </select>
+        </div>
+    </form>
+</body>
+</html>

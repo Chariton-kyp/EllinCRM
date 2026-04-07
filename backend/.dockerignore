@@ -1,0 +1,91 @@
+# ========================================
+# EllinCRM — Backend Docker Ignore
+# ========================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Type checkers
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Documentation
+docs/_build/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Local files
+.env
+.env.local
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.docker/
+
+# Git
+.git/
+.gitignore
+
+# Editor configs
+.editorconfig
+.prettierrc
+
+# Build artifacts
+*.tar
+*.tar.gz
+
+# Temporary files
+tmp/
+temp/
+*.tmp
