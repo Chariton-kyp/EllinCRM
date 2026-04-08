@@ -5,6 +5,7 @@ Uses any-llm (Mozilla.ai) under the hood via AIRouter — LiteLLM was removed
 after the March 2026 TeamPCP supply-chain compromise (CVE-2026-35029).
 """
 
+import asyncio
 import json
 import logging
 
@@ -12,18 +13,17 @@ from fastapi import HTTPException, status
 
 from app.ai.ai_router import get_ai_router
 
-# any-llm exception hierarchy (verified against any-llm==1.0.*)
+# any-llm v1 only exports a subset of exception classes. Timeouts come from
+# asyncio.TimeoutError (enforced by AIRouter via asyncio.wait_for), and
+# connection errors bubble up as the underlying provider SDK's exceptions —
+# both are handled by the string-sniffing fallback below.
 try:
     from any_llm.exceptions import (  # type: ignore[import]
-        APIConnectionError as _AnyLLMAPIConnectionError,
         AuthenticationError as _AnyLLMAuthenticationError,
         RateLimitError as _AnyLLMRateLimitError,
-        TimeoutError as _AnyLLMTimeout,
     )
     _ANY_LLM_EXCEPTIONS = True
 except ImportError:
-    # Fallback: if exception hierarchy differs in a future any-llm release,
-    # we retain the string-sniffing logic below.
     _ANY_LLM_EXCEPTIONS = False
 
 logger = logging.getLogger(__name__)
@@ -110,31 +110,26 @@ async def ai_completion_json(
             error_type = type(exc).__name__
             exc_str = str(exc)
 
-            # Classify using any-llm's exception hierarchy when available,
-            # falling back to string-sniffing for forward compatibility.
-            if _ANY_LLM_EXCEPTIONS:
-                if isinstance(exc, _AnyLLMRateLimitError):
-                    core_type = "RateLimitError"
-                elif isinstance(exc, _AnyLLMAuthenticationError):
-                    core_type = "AuthenticationError"
-                elif isinstance(exc, _AnyLLMTimeout):
-                    core_type = "Timeout"
-                elif isinstance(exc, _AnyLLMAPIConnectionError):
-                    core_type = "APIConnectionError"
-                else:
-                    core_type = error_type
+            # Rate-limit and auth are classified via any-llm's typed exceptions
+            # when available. Timeouts come from asyncio.TimeoutError (AIRouter
+            # wraps every call in asyncio.wait_for). Connection errors are
+            # provider-SDK specific and caught via string-sniffing.
+            if isinstance(exc, asyncio.TimeoutError):
+                core_type = "Timeout"
+            elif _ANY_LLM_EXCEPTIONS and isinstance(exc, _AnyLLMRateLimitError):
+                core_type = "RateLimitError"
+            elif _ANY_LLM_EXCEPTIONS and isinstance(exc, _AnyLLMAuthenticationError):
+                core_type = "AuthenticationError"
+            elif "RateLimitError" in error_type or "429" in exc_str:
+                core_type = "RateLimitError"
+            elif "AuthenticationError" in error_type or "401" in exc_str:
+                core_type = "AuthenticationError"
+            elif "Timeout" in error_type or "timeout" in exc_str.lower():
+                core_type = "Timeout"
+            elif "APIConnectionError" in error_type or "ConnectionError" in error_type:
+                core_type = "APIConnectionError"
             else:
-                # String-sniffing fallback (legacy / any-llm hierarchy mismatch)
-                if "RateLimitError" in error_type or "429" in exc_str:
-                    core_type = "RateLimitError"
-                elif "AuthenticationError" in error_type or "401" in exc_str:
-                    core_type = "AuthenticationError"
-                elif "Timeout" in error_type or "timeout" in exc_str.lower():
-                    core_type = "Timeout"
-                elif "APIConnectionError" in error_type:
-                    core_type = "APIConnectionError"
-                else:
-                    core_type = error_type
+                core_type = error_type
 
             logger.warning(
                 "AI call failed (%s, %s): %s",

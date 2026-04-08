@@ -13,6 +13,7 @@ Call-site contract is identical to the old LiteLLM Router:
 No callers (routers, services) need any changes.
 """
 
+import asyncio
 import logging
 from typing import Any
 
@@ -23,8 +24,9 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 # Logical name → (provider, provider-specific model id)
+# Model ids match the working browser-extension ai_router (known-good).
 MODEL_REGISTRY: dict[str, tuple[str, str]] = {
-    "gemini-flash":  ("gemini",    "gemini-3.1-flash-preview"),
+    "gemini-flash":  ("gemini",    "gemini-3.1-flash-lite-preview"),
     "claude-sonnet": ("anthropic", "claude-sonnet-4-6"),
     "claude-haiku":  ("anthropic", "claude-haiku-4-5-20251001"),
 }
@@ -54,12 +56,20 @@ class AIRouter:
                 f"Unknown model '{model}'. Known: {list(self._registry)}"
             ) from exc
         api_key = _API_KEY_BY_PROVIDER[provider]()
-        return await _any_llm_acompletion(
+
+        # any-llm v1 has no explicit `timeout` parameter and forwards unknown
+        # kwargs to the underlying provider SDK — behavior varies per provider.
+        # Enforce the timeout ourselves with asyncio.wait_for for consistency.
+        timeout = kwargs.pop("timeout", None)
+        call = _any_llm_acompletion(
             provider=provider,
             model=model_id,
             api_key=api_key,
             **kwargs,
         )
+        if timeout is not None:
+            return await asyncio.wait_for(call, timeout=timeout)
+        return await call
 
 
 # Module-level reference — set by init_ai_router() during startup
