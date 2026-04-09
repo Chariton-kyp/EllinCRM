@@ -30,9 +30,10 @@ numpy>=1.26.0
 
 # LLM Router
 # Replaced litellm after March 2026 TeamPCP supply-chain compromise (CVE-2026-35029).
-# any-llm calls official provider SDKs (anthropic, google-genai) directly — no central proxy.
-# Pinned to 1.0.* (not >=) for supply-chain hygiene.
-any-llm[anthropic,gemini]==1.0.*
+# Mozilla.ai's any-llm calls official provider SDKs (anthropic, google-genai)
+# directly — no central proxy. The pip package name is `any-llm-sdk`; the
+# import module is `any_llm`.
+any-llm-sdk[anthropic,gemini]==1.13.*
 
 # Logging
 structlog>=24.4.0
