@@ -1,0 +1,217 @@
+# Golden set for the v2 chat agent.
+#
+# Each entry is a Greek query the agent should handle, with explicit
+# expectations on:
+#   - category: taxonomy tag (aggregate / semantic / lookup / hybrid / chitchat)
+#   - expected_tools: tool names the agent MUST call (order-independent for
+#     parallel calls; use a single-element list for "call exactly this one").
+#     Empty list means NO tools should be called (chitchat).
+#   - forbidden_tools: tool names the agent must NOT call (e.g. search_records
+#     is forbidden for aggregate queries because it would return top-k ≠ total).
+#   - must_contain: substrings that MUST appear in the final answer (partial
+#     case-insensitive match). Numbers are the load-bearing assertions for
+#     aggregate queries.
+#   - must_not_contain: substrings forbidden in the answer (e.g. English
+#     fallback words, obviously wrong numbers).
+#
+# Prerequisites for running:
+#   1. Docker stack up with current DB state (25 seed records expected)
+#   2. Qwen3-Embedding re-indexed via `python -m scripts.reembed_all`
+#   3. Anthropic API key configured
+#
+# Run:
+#   cd backend && pytest tests/test_chat_golden.py -v
+
+# ============================================================================
+# CATEGORY: AGGREGATE — must use count_records / aggregate_invoice_field /
+# group_by_dimension. Never use search_records (it returns top-k, not total).
+# ============================================================================
+
+- id: aggregate_invoice_count
+  query: "Πόσα τιμολόγια έχουμε συνολικά;"
+  category: aggregate
+  expected_tools: [count_records]
+  forbidden_tools: [search_records]
+  must_contain: ["9"]
+  must_not_contain: ["3"]
+
+- id: aggregate_email_count
+  query: "Πόσα emails έχουμε;"
+  category: aggregate
+  expected_tools: [count_records]
+  forbidden_tools: [search_records]
+  must_contain: ["10"]
+
+- id: aggregate_form_count
+  query: "Πόσες φόρμες επικοινωνίας έχουμε;"
+  category: aggregate
+  expected_tools: [count_records]
+  forbidden_tools: [search_records]
+  must_contain: ["5"]
+
+- id: aggregate_pending_count
+  query: "Πόσες εγγραφές είναι σε εκκρεμότητα;"
+  category: aggregate
+  expected_tools: [count_records]
+  forbidden_tools: [search_records]
+  must_contain: ["εκκρεμ"]
+
+- id: aggregate_total_revenue
+  query: "Ποιο είναι το συνολικό ποσό όλων των τιμολογίων;"
+  category: aggregate
+  expected_tools: [aggregate_invoice_field]
+  forbidden_tools: [search_records]
+  must_contain: ["€"]
+
+- id: aggregate_avg_invoice
+  query: "Ποιος είναι ο μέσος όρος των τιμολογίων μας;"
+  category: aggregate
+  expected_tools: [aggregate_invoice_field]
+  forbidden_tools: [search_records]
+  must_contain: ["€"]
+
+- id: aggregate_total_vat
+  query: "Πόσο ΦΠΑ οφείλουμε συνολικά από τα τιμολόγια;"
+  category: aggregate
+  expected_tools: [aggregate_invoice_field]
+  forbidden_tools: [search_records]
+  must_contain: ["ΦΠΑ"]
+
+- id: aggregate_max_invoice
+  query: "Ποιο είναι το μεγαλύτερο τιμολόγιο που έχουμε;"
+  category: aggregate
+  expected_tools: [aggregate_invoice_field]
+  forbidden_tools: []
+  must_contain: ["€"]
+
+# ============================================================================
+# CATEGORY: GROUP_BY — distribution / top-N queries
+# ============================================================================
+
+- id: groupby_status
+  query: "Δώσε μου την κατανομή των εγγραφών ανά κατάσταση"
+  category: hybrid
+  expected_tools: [group_by_dimension]
+  forbidden_tools: []
+  must_contain: []
+
+- id: groupby_type
+  query: "Πόσες εγγραφές έχουμε ανά τύπο;"
+  category: hybrid
+  expected_tools: [group_by_dimension]
+  forbidden_tools: []
+  must_contain: ["τιμολ", "email"]
+
+- id: groupby_top_customers
+  query: "Ποιος πελάτης έχει τον μεγαλύτερο τζίρο στα τιμολόγιά μας;"
+  category: hybrid
+  expected_tools: [group_by_dimension]
+  forbidden_tools: []
+  must_contain: ["€"]
+
+# ============================================================================
+# CATEGORY: SEMANTIC — content-based search. Must use search_records.
+# ============================================================================
+
+- id: semantic_gdpr
+  query: "Βρες μου emails που αναφέρουν GDPR ή προστασία δεδομένων"
+  category: semantic
+  expected_tools: [search_records]
+  forbidden_tools: []
+  must_contain: []
+
+- id: semantic_food
+  query: "Υπάρχουν τιμολόγια σχετικά με τροφή ή τρόφιμα;"
+  category: semantic
+  expected_tools: [search_records]
+  forbidden_tools: []
+  must_contain: []
+
+- id: semantic_digitization
+  query: "Δείξε μου emails για ψηφιοποίηση εγγράφων ή ψηφιακή μετατροπή"
+  category: semantic
+  expected_tools: [search_records]
+  forbidden_tools: []
+  must_contain: []
+
+- id: semantic_construction
+  query: "Ποιοι πελάτες έχουν σχέση με κατασκευές;"
+  category: semantic
+  expected_tools: [search_records]
+  forbidden_tools: []
+  must_contain: []
+
+- id: semantic_legal
+  query: "Υπάρχουν δικηγορικά γραφεία στους πελάτες μας;"
+  category: semantic
+  expected_tools: [search_records]
+  forbidden_tools: []
+  must_contain: []
+
+# ============================================================================
+# CATEGORY: LOOKUP — exact document retrieval
+# ============================================================================
+
+- id: lookup_invoice_001
+  query: "Δείξε μου το τιμολόγιο EC-2025-001"
+  category: lookup
+  expected_tools: [get_record]
+  forbidden_tools: []
+  must_contain: ["EC-2025-001"]
+
+- id: lookup_email_03
+  query: "Τι γράφει το email_03.eml;"
+  category: lookup
+  expected_tools: [get_record]
+  forbidden_tools: []
+  must_contain: ["email_03"]
+
+- id: lookup_contact_form_2
+  query: "Δείξε μου το contact_form_2.html"
+  category: lookup
+  expected_tools: [get_record]
+  forbidden_tools: []
+  must_contain: ["contact_form_2"]
+
+# ============================================================================
+# CATEGORY: HYBRID — compound queries requiring multiple tools
+# ============================================================================
+
+- id: hybrid_count_and_sum
+  query: "Πόσα τιμολόγια έχουμε και ποιο είναι το συνολικό τους ποσό;"
+  category: hybrid
+  expected_tools: [count_records, aggregate_invoice_field]
+  forbidden_tools: []
+  must_contain: ["9", "€"]
+
+- id: hybrid_search_and_count
+  query: "Βρες πόσα emails αναφέρουν νομικές υπηρεσίες"
+  category: hybrid
+  expected_tools: [search_records]
+  forbidden_tools: []
+  must_contain: []
+
+# ============================================================================
+# CATEGORY: CHITCHAT — no tools should be called
+# ============================================================================
+
+- id: chitchat_hello
+  query: "Γεια σου!"
+  category: chitchat
+  expected_tools: []
+  forbidden_tools: [count_records, aggregate_invoice_field, group_by_dimension, search_records, get_record]
+  must_contain: []
+
+- id: chitchat_thanks
+  query: "Ευχαριστώ!"
+  category: chitchat
+  expected_tools: []
+  forbidden_tools: [count_records, aggregate_invoice_field, group_by_dimension, search_records, get_record]
+  must_contain: []
+
+- id: chitchat_help
+  query: "Τι μπορείς να κάνεις;"
+  category: chitchat
+  expected_tools: []
+  forbidden_tools: [count_records, aggregate_invoice_field, search_records, get_record]
+  must_contain: []
