@@ -165,7 +165,8 @@ async def get_chat_agent() -> Any:
         _agent_singleton = create_react_agent(
             model=model,
             tools=CHAT_TOOLS,
-            state_modifier=GREEK_SYSTEM_PROMPT,
+            # Param renamed from state_modifier → prompt in LangGraph 1.1+
+            prompt=GREEK_SYSTEM_PROMPT,
             checkpointer=checkpointer,
         )
 

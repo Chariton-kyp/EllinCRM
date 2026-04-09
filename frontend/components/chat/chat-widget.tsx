@@ -26,6 +26,18 @@ interface Source {
   score: number;
 }
 
+// Phase 2A: structured tool call lifecycle event from the LangGraph agent.
+// Each assistant message may have 0-N tool events attached (displayed as chips).
+export interface ToolEvent {
+  id: string; // run_id from LangGraph
+  name: string; // canonical tool name (count_records, etc.)
+  displayEl: string; // Greek display label
+  status: "running" | "done" | "error";
+  summaryEl?: string; // short Greek result summary (shown on resolved chip)
+}
+
+const THREAD_ID_STORAGE_KEY = "ellincrm_chat_thread_id";
+
 const SUGGESTION_QUESTIONS = [
   "\u03A0\u03BF\u03B9\u03B1 \u03C4\u03B9\u03BC\u03BF\u03BB\u03BF\u03B3\u03B9\u03B1 \u03BE\u03B5\u03C0\u03B5\u03C1\u03BD\u03BF\u03C5\u03BD \u03C4\u03B1 1000EUR;",
   "\u03A0\u03BF\u03B9\u03BF\u03C2 \u03C0\u03B5\u03BB\u03B1\u03C4\u03B7\u03C2 \u03B6\u03B7\u03C4\u03B7\u03C3\u03B5 \u03C5\u03C0\u03B7\u03C1\u03B5\u03C3\u03B9\u03B5\u03C2 CRM;",
@@ -47,9 +59,24 @@ export function ChatWidget() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [sources, setSources] = useState<Record<string, Source[]>>({});
+  // Phase 2A: tool call events per assistant message (rendered as chips)
+  const [toolEvents, setToolEvents] = useState<Record<string, ToolEvent[]>>({});
+  // Phase 2C: conversation thread id persisted in localStorage for follow-ups
+  const [threadId, setThreadId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Hydrate thread_id from localStorage on first mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stored = window.localStorage.getItem(THREAD_ID_STORAGE_KEY);
+      if (stored) setThreadId(stored);
+    } catch {
+      // localStorage unavailable (private mode); start fresh
+    }
+  }, []);
 
   // Auto-scroll on new messages or streaming updates
   useEffect(() => {
@@ -92,7 +119,11 @@ export function ChatWidget() {
         const response = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: apiMessages, stream: true }),
+          body: JSON.stringify({
+            messages: apiMessages,
+            stream: true,
+            thread_id: threadId,
+          }),
           signal: abortController.signal,
         });
 
@@ -144,13 +175,68 @@ export function ChatWidget() {
                     )
                   );
                 }
+              } else if (data.type === "tool_call_start") {
+                // Create the assistant message stub if needed so chips
+                // can render above any future text tokens.
+                if (!assistantCreated) {
+                  setMessages((prev) => [
+                    ...prev,
+                    { id: assistantId, role: "assistant", content: "" },
+                  ]);
+                  assistantCreated = true;
+                }
+                setToolEvents((prev) => {
+                  const existing = prev[assistantId] || [];
+                  return {
+                    ...prev,
+                    [assistantId]: [
+                      ...existing,
+                      {
+                        id: data.id,
+                        name: data.name,
+                        displayEl: data.display_el,
+                        status: "running",
+                      },
+                    ],
+                  };
+                });
+              } else if (data.type === "tool_call_result") {
+                setToolEvents((prev) => {
+                  const existing = prev[assistantId] || [];
+                  return {
+                    ...prev,
+                    [assistantId]: existing.map((ev) =>
+                      ev.id === data.id
+                        ? {
+                            ...ev,
+                            status: data.ok ? "done" : "error",
+                            summaryEl: data.summary_el,
+                          }
+                        : ev
+                    ),
+                  };
+                });
+              } else if (data.type === "status") {
+                // Lightweight status updates; currently unused in UI but kept
+                // for future loading indicators.
               } else if (data.type === "sources" && data.sources) {
                 setSources((prev) => ({
                   ...prev,
                   [assistantId]: data.sources,
                 }));
               } else if (data.type === "done") {
-                // Stream complete
+                // Persist thread_id for follow-up questions (Phase 2C)
+                if (data.thread_id && typeof window !== "undefined") {
+                  try {
+                    window.localStorage.setItem(
+                      THREAD_ID_STORAGE_KEY,
+                      data.thread_id,
+                    );
+                    setThreadId(data.thread_id);
+                  } catch {
+                    // localStorage unavailable; thread_id won't persist across reload
+                  }
+                }
               } else if (data.type === "error") {
                 if (!assistantCreated) {
                   setMessages((prev) => [
@@ -332,6 +418,9 @@ export function ChatWidget() {
                           isStreaming &&
                           msg.role === "assistant" &&
                           idx === messages.length - 1
+                        }
+                        toolEvents={
+                          msg.role === "assistant" ? toolEvents[msg.id] : undefined
                         }
                       />
                       {msg.role === "assistant" &&
