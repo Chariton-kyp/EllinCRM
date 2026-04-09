@@ -27,7 +27,6 @@ Data model note:
 
 from __future__ import annotations
 
-import logging
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Literal
@@ -36,9 +35,10 @@ from uuid import UUID
 from langchain_core.tools import tool
 from sqlalchemy import text
 
+from app.core.logging import get_logger
 from app.db.readonly_session import get_readonly_session
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Hard cap on any list-returning tool — prevents accidental full-table dumps
 MAX_RESULT_LIMIT = 200

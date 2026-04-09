@@ -26,13 +26,13 @@ See `.planning/chat-agent-v2/SPEC.md` for the full architecture rationale.
 from __future__ import annotations
 
 import asyncio
-import logging
 from typing import Any
 
 from app.ai.chat_tools import CHAT_TOOLS
 from app.core.config import settings
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # ---------------------------------------------------------------------------
 # Greek system prompt (the critical piece for correct tool routing)
@@ -100,6 +100,7 @@ GREEK_SYSTEM_PROMPT = """Εισαι ο AI βοηθος του EllinCRM, ενα �
 
 _agent_singleton: Any = None
 _checkpointer_singleton: Any = None
+_checkpointer_pool: Any = None
 _init_lock: asyncio.Lock | None = None
 
 
@@ -121,10 +122,14 @@ async def _build_checkpointer() -> Any:
     setup() call (`checkpoints`, `checkpoint_blobs`, `checkpoint_writes`,
     `checkpoint_migrations`). It's idempotent — safe to call at every startup.
 
-    We use psycopg-compatible URL (not asyncpg) because AsyncPostgresSaver
-    is built on psycopg 3.
+    Implementation note: the v3 API's `from_conn_string()` returns an async
+    context manager that closes the connection when the CM exits. Using it
+    as a short-lived CM from a singleton builder results in closed-connection
+    errors on subsequent requests. Instead, we create a persistent
+    `AsyncConnectionPool` ourselves and pass it to `AsyncPostgresSaver`, which
+    keeps the pool alive for the app's lifetime.
     """
-    global _checkpointer_singleton
+    global _checkpointer_singleton, _checkpointer_pool
     if _checkpointer_singleton is not None:
         return _checkpointer_singleton
 
@@ -134,6 +139,7 @@ async def _build_checkpointer() -> Any:
 
     try:
         from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+        from psycopg_pool import AsyncConnectionPool
     except ImportError as exc:
         logger.warning("checkpointer_import_failed", error=str(exc))
         return None
@@ -148,17 +154,37 @@ async def _build_checkpointer() -> Any:
         db_url = db_url.replace("postgresql+psycopg://", "postgresql://")
 
     try:
-        # from_conn_string returns an async context manager; we enter it and
-        # keep the saver alive for the lifetime of the application.
-        cm = AsyncPostgresSaver.from_conn_string(db_url)
-        saver = await cm.__aenter__()
+        # Create a dedicated psycopg connection pool for the checkpointer.
+        # autocommit=True is required because AsyncPostgresSaver issues
+        # LISTEN/NOTIFY on some paths which can't run inside transactions.
+        # prepare_threshold=0 disables server-side prepared statements which
+        # conflict with PgBouncer transaction pooling (harmless otherwise).
+        _checkpointer_pool = AsyncConnectionPool(
+            conninfo=db_url,
+            min_size=1,
+            max_size=5,
+            kwargs={"autocommit": True, "prepare_threshold": 0},
+            open=False,
+        )
+        await _checkpointer_pool.open()
+
+        saver = AsyncPostgresSaver(_checkpointer_pool)
         # Create checkpoint tables if they don't exist (idempotent).
         await saver.setup()
         _checkpointer_singleton = saver
         logger.info("checkpointer_initialized", backend="postgres")
         return saver
     except Exception as exc:
-        logger.warning("checkpointer_init_failed", error=str(exc))
+        logger.warning(
+            "checkpointer_init_failed", error=str(exc), exc_type=type(exc).__name__
+        )
+        # Clean up the partially-opened pool if we got that far
+        if _checkpointer_pool is not None:
+            try:
+                await _checkpointer_pool.close()
+            except Exception:
+                pass
+            _checkpointer_pool = None
         return None
 
 
@@ -234,7 +260,12 @@ async def get_chat_agent() -> Any:
 
 
 def reset_chat_agent() -> None:
-    """Drop the cached singleton. Used by tests and config hot-reload."""
+    """Drop the cached singleton. Used by tests and config hot-reload.
+
+    Note: we don't close _checkpointer_pool here because reset is called
+    from sync code (tests) and closing needs an event loop. For a clean
+    shutdown, use app shutdown hooks via app/main.py.
+    """
     global _agent_singleton, _checkpointer_singleton
     _agent_singleton = None
     _checkpointer_singleton = None

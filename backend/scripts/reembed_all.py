@@ -27,7 +27,6 @@ Safety:
 from __future__ import annotations
 
 import asyncio
-import logging
 import sys
 import time
 
@@ -38,13 +37,11 @@ from app.ai.embeddings import (
     get_embedding_service,
 )
 from app.ai.greek_text import normalize_greek_text
+from app.core.logging import get_logger, setup_logging
 from app.db.database import AsyncSessionLocal
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
-)
-logger = logging.getLogger("reembed_all")
+setup_logging()
+logger = get_logger("reembed_all")
 
 
 async def reembed_all() -> int:

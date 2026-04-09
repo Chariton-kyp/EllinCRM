@@ -33,7 +33,6 @@ The request accepts an optional `thread_id`. When the checkpointer is wired
 from __future__ import annotations
 
 import json
-import logging
 import uuid
 from collections.abc import AsyncGenerator
 from typing import Any, Literal
@@ -45,9 +44,10 @@ from pydantic import BaseModel, Field
 from app.ai.chat_agent import get_chat_agent
 from app.ai.chat_tools import TOOL_DISPLAY_NAMES_EL
 from app.core.config import settings
+from app.core.logging import get_logger
 from app.db.database import get_db  # noqa: F401 — kept for legacy imports
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -277,7 +277,7 @@ async def _stream_agent_response(
     try:
         agent = await get_chat_agent()
     except Exception as exc:
-        logger.error("chat_agent_init_failed: %s", exc)
+        logger.error("chat_agent_init_failed", error=str(exc))
         yield _format_sse(
             {
                 "type": "error",
@@ -292,7 +292,7 @@ async def _stream_agent_response(
     try:
         from langchain_core.messages import AIMessage, HumanMessage
     except ImportError as exc:
-        logger.error("langchain_import_failed: %s", exc)
+        logger.error("langchain_import_failed", error=str(exc))
         yield _format_sse({"type": "error", "content": "LangChain not installed"})
         yield _format_sse({"type": "done", "thread_id": thread_id})
         return
@@ -374,7 +374,7 @@ async def _stream_agent_response(
                     else:
                         result_value = output
                 except Exception as exc:
-                    logger.warning("tool_result_parse_failed: %s", exc)
+                    logger.warning("tool_result_parse_failed", error=str(exc))
                     result_value = None
                     ok = False
 
@@ -400,7 +400,7 @@ async def _stream_agent_response(
                     final_state = output
 
     except Exception as exc:
-        logger.exception("chat_stream_error: %s", exc)
+        logger.error("chat_stream_error", error=str(exc), exc_type=type(exc).__name__)
         yield _format_sse(
             {
                 "type": "error",
@@ -477,7 +477,7 @@ async def _sync_agent_response(
             config=config,
         )
     except Exception as exc:
-        logger.exception("chat_sync_error: %s", exc)
+        logger.error("chat_sync_error", error=str(exc), exc_type=type(exc).__name__)
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Agent execution failed: {type(exc).__name__}",
