@@ -4,11 +4,21 @@ Embedding service for document vectorization.
 Uses sentence-transformers with a multilingual model for Greek/English support.
 Embeddings are stored in PostgreSQL with pgvector for efficient similarity search.
 
-Model Selection Strategy:
-1. Primary: google/embeddinggemma-300m (768 dims) - requires HuggingFace token
-2. Fallback: paraphrase-multilingual-mpnet-base-v2 (768 dims) - no auth required
+Model Selection Strategy (Phase 2B — April 2026):
+1. Primary: Qwen/Qwen3-Embedding-0.6B — #1 MTEB multilingual leaderboard (1.7M downloads).
+   Native 1024-dim output, truncated to 768-dim via Matryoshka Representation Learning.
+2. Fallback 1: google/embeddinggemma-300m (previous primary, kept for compatibility).
+3. Fallback 2: paraphrase-multilingual-mpnet-base-v2 (no HF auth required).
 
-Both models support Greek/English and produce 768-dimensional vectors.
+All three produce 768-dimensional vectors to match the existing pgvector column
+(vector(768) from Alembic migration 003). Qwen3-Embedding's Matryoshka training
+guarantees the first 768 dimensions retain most semantic information — no schema
+migration needed.
+
+MIGRATION NOTE: After swapping the primary model, existing embeddings in
+document_embeddings are stale (different model → incomparable vector spaces).
+Run `backend/scripts/reembed_all.py` to regenerate them, OR re-extract records
+via the UI's "Εξαγωγή & Αποθήκευση" button which triggers a fresh embedding.
 
 ASYNC LOADING:
 The model is loaded in the background on startup to avoid blocking the API.
@@ -39,19 +49,23 @@ class ModelStatus(str, Enum):
     READY = "ready"
     FAILED = "failed"
 
-# Primary model: Google EmbeddingGemma 300M (September 2025)
-# - 768 dimensions, 300M parameters
-# - Multilingual: 100+ languages including Greek
-# - Requires HuggingFace authentication (gated model)
-PRIMARY_MODEL = "google/embeddinggemma-300m"
+# Primary model: Qwen3-Embedding 0.6B (Phase 2B, April 2026)
+# - Native 1024-dim, truncated to 768 via Matryoshka (truncate_dim=768)
+# - #1 on MTEB multilingual leaderboard, 100+ languages including Greek
+# - 600M parameters, CPU-runnable (~200ms per query)
+# - Apache 2.0 license, no HF auth required
+# - Ref: https://huggingface.co/Qwen/Qwen3-Embedding-0.6B
+PRIMARY_MODEL = "Qwen/Qwen3-Embedding-0.6B"
 
-# Fallback model: Multilingual MPNet (no auth required)
-# - 768 dimensions, based on XLM-RoBERTa
-# - Multilingual: 50+ languages including Greek
-# - Free to use without authentication
+# Fallback model chain (tried in order if primary fails):
+#   1. google/embeddinggemma-300m — previous primary, requires HF token
+#   2. paraphrase-multilingual-mpnet-base-v2 — unrestricted XLM-RoBERTa
+# The second fallback always works (no auth, always available).
 FALLBACK_MODEL = "paraphrase-multilingual-mpnet-base-v2"
+LEGACY_MODEL = "google/embeddinggemma-300m"
 
-# Embedding dimension (both models produce 768-dim vectors)
+# Embedding dimension — pgvector column is vector(768) from migration 003.
+# Qwen3-Embedding is truncated via Matryoshka to this dimension on load.
 EMBEDDING_DIMENSION = 768
 
 
@@ -225,13 +239,20 @@ class EmbeddingService:
             raise
 
     def _load_model_with_fallback(self) -> SentenceTransformer:
-        """
-        Attempt to load the primary model, fall back if it fails.
+        """Attempt to load models in priority order, falling back on failure.
+
+        Chain (Phase 2B):
+          1. Qwen3-Embedding 0.6B (primary) with truncate_dim=768 Matryoshka
+          2. EmbeddingGemma 300M (legacy) — requires HF token
+          3. paraphrase-multilingual-mpnet-base-v2 (always available)
 
         Returns:
-            Loaded SentenceTransformer model.
+            Loaded SentenceTransformer model producing 768-dim vectors.
+
+        Raises:
+            RuntimeError: If all models fail to load.
         """
-        # Set HuggingFace token if available
+        # Set HuggingFace token if available (needed for the legacy gated model)
         hf_token = settings.huggingface_token
         if hf_token:
             os.environ["HF_TOKEN"] = hf_token
@@ -241,59 +262,57 @@ class EmbeddingService:
                 token_prefix=hf_token[:8] + "..." if len(hf_token) > 8 else "***",
             )
 
-        # Try primary model first
-        try:
-            logger.info(
-                "loading_embedding_model",
-                model=self._primary_model,
-                is_primary=True,
-            )
-            model = SentenceTransformer(
-                self._primary_model,
-                token=hf_token,
-            )
-            self._active_model_name = self._primary_model
-            logger.info(
-                "embedding_model_loaded",
-                model=self._primary_model,
-                dimension=self._dimension,
-                is_primary=True,
-            )
-            return model
-        except Exception as e:
-            logger.warning(
-                "primary_model_failed",
-                model=self._primary_model,
-                error=str(e),
-                fallback=self._fallback_model,
-            )
+        # Ordered candidates: (model_id, requires_token, trust_remote_code, label)
+        candidates: list[tuple[str, bool, bool, str]] = [
+            (self._primary_model, False, True, "primary_qwen3"),
+            (LEGACY_MODEL, True, False, "legacy_embeddinggemma"),
+            (self._fallback_model, False, False, "fallback_mpnet"),
+        ]
 
-        # Fall back to secondary model
-        try:
-            logger.info(
-                "loading_embedding_model",
-                model=self._fallback_model,
-                is_fallback=True,
-            )
-            model = SentenceTransformer(self._fallback_model)
-            self._active_model_name = self._fallback_model
-            logger.info(
-                "embedding_model_loaded",
-                model=self._fallback_model,
-                dimension=self._dimension,
-                is_fallback=True,
-            )
-            return model
-        except Exception as e:
-            logger.error(
-                "fallback_model_failed",
-                model=self._fallback_model,
-                error=str(e),
-            )
-            raise RuntimeError(
-                f"Failed to load both primary ({self._primary_model}) "
-                f"and fallback ({self._fallback_model}) embedding models: {e}"
-            )
+        last_error: Exception | None = None
+        for model_id, requires_token, trust_remote_code, label in candidates:
+            if requires_token and not hf_token:
+                logger.info(
+                    "skipping_model_no_token",
+                    model=model_id,
+                    reason="HUGGINGFACE_TOKEN not set",
+                )
+                continue
+            try:
+                logger.info("loading_embedding_model", model=model_id, label=label)
+                kwargs: dict[str, Any] = {}
+                if requires_token:
+                    kwargs["token"] = hf_token
+                if trust_remote_code:
+                    # Qwen3-Embedding ships a custom modeling class
+                    kwargs["trust_remote_code"] = True
+                # Matryoshka truncation at load time — output vectors are 768-dim
+                # regardless of the model's native dimension. Silently no-op for
+                # models whose native dim is already 768.
+                kwargs["truncate_dim"] = EMBEDDING_DIMENSION
+                model = SentenceTransformer(model_id, **kwargs)
+                self._active_model_name = model_id
+                logger.info(
+                    "embedding_model_loaded",
+                    model=model_id,
+                    dimension=self._dimension,
+                    label=label,
+                )
+                return model
+            except Exception as exc:
+                last_error = exc
+                logger.warning(
+                    "embedding_model_load_failed",
+                    model=model_id,
+                    label=label,
+                    error=str(exc),
+                )
+
+        raise RuntimeError(
+            f"Failed to load any embedding model (primary={self._primary_model}, "
+            f"legacy={LEGACY_MODEL}, fallback={self._fallback_model}). "
+            f"Last error: {last_error}"
+        )
 
     @property
     def dimension(self) -> int:
