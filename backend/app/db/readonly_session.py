@@ -157,8 +157,13 @@ async def get_readonly_session() -> AsyncGenerator[AsyncSession, None]:
 
     async with session_maker() as session:
         try:
-            # Belt-and-suspenders statement timeout
-            await session.execute(text("SET LOCAL statement_timeout = '3s'"))
+            # Belt-and-suspenders statement timeout. Using SET (session-level)
+            # instead of SET LOCAL because SET LOCAL only persists within a
+            # transaction — if SQLAlchemy autocommits or a tool rolls back
+            # mid-flight, SET LOCAL would be lost. Session-level SET persists
+            # until the connection is returned to the pool (which is fine
+            # since we always rollback in the finally block).
+            await session.execute(text("SET statement_timeout = '3s'"))
             yield session
         finally:
             # Readonly by intent: no commit, always rollback any accidental writes

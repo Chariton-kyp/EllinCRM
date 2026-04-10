@@ -219,10 +219,17 @@ async def aggregate_invoice_field(
         {"value": float|None, "count": int, "metric": str, "field": str,
          "currency": "EUR", "filters_applied": str}
     """
-    # SQLAlchemy cannot parametrize function names; we validate against Literal and
-    # emit the chosen aggregate explicitly. No injection risk because the set is
-    # closed by Pydantic.
+    # Runtime allowlists — defense in depth beyond Pydantic Literal validation.
+    # Direct callers (tests, future code) may bypass LangChain's schema check.
+    ALLOWED_FIELDS = {"total_amount", "net_amount", "vat_amount"}
+    if field not in ALLOWED_FIELDS:
+        return {"error": "invalid_field", "field": field, "value": None, "count": 0,
+                "metric": metric, "currency": "EUR", "filters_applied": ""}
+
     agg_fn_map = {"sum": "SUM", "avg": "AVG", "min": "MIN", "max": "MAX"}
+    if metric not in agg_fn_map:
+        return {"error": "invalid_metric", "field": field, "value": None, "count": 0,
+                "metric": metric, "currency": "EUR", "filters_applied": ""}
     agg_fn = agg_fn_map[metric]
 
     # Always filter to invoices for this tool

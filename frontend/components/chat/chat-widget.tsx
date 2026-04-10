@@ -274,7 +274,7 @@ export function ChatWidget() {
         abortRef.current = null;
       }
     },
-    [messages, isStreaming]
+    [messages, isStreaming, threadId]
   );
 
   const handleStop = () => {

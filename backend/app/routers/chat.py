@@ -304,11 +304,14 @@ async def _stream_agent_response(
         else:
             lc_messages.append(AIMessage(content=msg.content))
 
-    # LangGraph config — thread_id is used by the checkpointer in Phase 2C
+    # LangGraph config — thread_id for checkpointer, recursion_limit caps
+    # tool-calling iterations to prevent runaway loops and API cost spikes.
+    # Default is 25; 10 is more than enough for our 5 tools.
     config = {
         "configurable": {
             "thread_id": thread_id,
-        }
+        },
+        "recursion_limit": 10,
     }
 
     yield _format_sse({"type": "status", "step": "starting"})
@@ -469,7 +472,7 @@ async def _sync_agent_response(
         else:
             lc_messages.append(AIMessage(content=msg.content))
 
-    config = {"configurable": {"thread_id": thread_id}}
+    config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 10}
 
     try:
         final_state = await agent.ainvoke(

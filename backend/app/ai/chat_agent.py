@@ -231,7 +231,12 @@ async def get_chat_agent() -> Any:
         # pay the import cost unless the chat is actually used.
         try:
             from langchain_anthropic import ChatAnthropic
-            from langgraph.prebuilt import create_react_agent
+            # LangGraph 1.1+: create_react_agent moved to langchain.agents.
+            # Fallback to the old import path for compatibility with 1.0.x.
+            try:
+                from langchain.agents import create_react_agent
+            except ImportError:
+                from langgraph.prebuilt import create_react_agent
         except ImportError as exc:
             raise RuntimeError(
                 f"LangGraph/LangChain not installed: {exc}. "

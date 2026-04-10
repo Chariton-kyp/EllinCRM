@@ -211,12 +211,22 @@ class HybridSearchService:
         # Generate query embedding
         query_embedding = await self.embedding_service.generate_embedding_async(query)
 
-        # Format embedding as vector literal for SQL
-        embedding_str = f"'[{','.join(map(str, query_embedding))}]'"
+        if query_embedding is None:
+            logger.warning("semantic_search_skipped_embedding_none")
+            return []
+
+        # Use bound parameter for the embedding vector (defense in depth —
+        # embeddings come from a trusted local model, but parameterizing
+        # avoids any risk from malformed floats or future refactors).
+        embedding_literal = f"[{','.join(map(str, query_embedding))}]"
 
         # Build WHERE clauses
-        where_clauses = [f"1 - (de.embedding <=> {embedding_str}::vector) >= :min_similarity"]
-        params: dict[str, Any] = {"min_similarity": min_similarity, "limit": limit}
+        where_clauses = ["1 - (de.embedding <=> CAST(:qvec AS vector)) >= :min_similarity"]
+        params: dict[str, Any] = {
+            "qvec": embedding_literal,
+            "min_similarity": min_similarity,
+            "limit": limit,
+        }
 
         if record_type:
             where_clauses.append("er.record_type = :record_type")
@@ -228,16 +238,16 @@ class HybridSearchService:
 
         where_sql = " AND ".join(where_clauses)
 
-        # Use raw SQL for pgvector operations
+        # Use raw SQL for pgvector operations — embedding passed as bound param
         sql = text(f"""
             SELECT
                 de.record_id,
                 de.content_text,
-                1 - (de.embedding <=> {embedding_str}::vector) as semantic_score
+                1 - (de.embedding <=> CAST(:qvec AS vector)) as semantic_score
             FROM document_embeddings de
             JOIN extraction_records er ON de.record_id = er.id
             WHERE {where_sql}
-            ORDER BY de.embedding <=> {embedding_str}::vector
+            ORDER BY de.embedding <=> CAST(:qvec AS vector)
             LIMIT :limit
         """)
 
