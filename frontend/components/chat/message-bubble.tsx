@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { User, Bot, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "@/lib/utils";
 
 // Phase 2A: structured tool call lifecycle events rendered as chips above
@@ -67,6 +66,11 @@ function ToolChips({ events }: { events: ToolEvent[] }) {
           </motion.div>
         ))}
       </AnimatePresence>
+      {events.some(ev => ev.status === "error") && (
+        <p className="text-xs text-red-500 dark:text-red-400 mt-1 italic">
+          Ένα ή περισσότερα εργαλεία απέτυχαν. Η απάντηση μπορεί να είναι ελλιπής.
+        </p>
+      )}
     </div>
   );
 }
@@ -121,7 +125,7 @@ export function MessageBubble({
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                a: ({ ...props }: ComponentPropsWithoutRef<"a">) => (
+                a: ({ node: _, ...props }: any) => (
                   <a
                     {...props}
                     target="_blank"
@@ -129,7 +133,7 @@ export function MessageBubble({
                     className="text-sky-600 dark:text-sky-400 underline"
                   />
                 ),
-                table: ({ ...props }: ComponentPropsWithoutRef<"table">) => (
+                table: ({ node: _, ...props }: any) => (
                   <div className="overflow-x-auto">
                     <table
                       {...props}
@@ -137,23 +141,24 @@ export function MessageBubble({
                     />
                   </div>
                 ),
-                th: ({ ...props }: ComponentPropsWithoutRef<"th">) => (
+                th: ({ node: _, ...props }: any) => (
                   <th
                     {...props}
                     className="border border-gray-300 dark:border-gray-700 px-2 py-1 bg-gray-200 dark:bg-gray-900 font-semibold text-left"
                   />
                 ),
-                td: ({ ...props }: ComponentPropsWithoutRef<"td">) => (
+                td: ({ node: _, ...props }: any) => (
                   <td
                     {...props}
                     className="border border-gray-300 dark:border-gray-700 px-2 py-1"
                   />
                 ),
                 code: ({
+                  node: _,
                   className,
                   children,
                   ...props
-                }: ComponentPropsWithoutRef<"code"> & { inline?: boolean }) => {
+                }: any) => {
                   const isBlock = /\n/.test(String(children ?? "")) || /language-/.test(className ?? "");
                   if (isBlock) {
                     return (

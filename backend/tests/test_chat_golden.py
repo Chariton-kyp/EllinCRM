@@ -1,55 +1,41 @@
-"""Golden-set regression tests for the v2 chat agent.
+"""Golden-set regression tests for the v2 chat agent (HTTP-based).
 
-Loads `tests/golden/chat_queries.yaml` and asserts, for each entry:
+Loads ``tests/golden/chat_queries.yaml`` and asserts, for each entry:
 
-  1. The agent calls exactly the expected tools (order-independent).
+  1. The agent calls all expected tools (``tools_called`` field).
   2. The agent does NOT call any forbidden tools.
-  3. The final answer contains all required substrings.
+  3. The final answer contains all required substrings (case-insensitive).
   4. The final answer contains none of the forbidden substrings.
 
-## Running
+Prerequisites
+-------------
+These tests hit the **running** backend via HTTP, so the Docker dev stack
+must be up (``docker compose --profile dev up``) with the database seeded
+(25 records) and ``ANTHROPIC_API_KEY`` configured.
 
-  cd backend
-  pytest tests/test_chat_golden.py -v                    # all queries
-  pytest tests/test_chat_golden.py -v -k "aggregate"     # only aggregate queries
-  pytest tests/test_chat_golden.py -v -k "aggregate_invoice_count"  # single
+Running
+-------
+::
 
-## Prerequisites
-
-  1. Docker stack up with current DB state (25 seed records expected)
-  2. `python -m scripts.reembed_all` (if migrating from EmbeddingGemma)
-  3. ANTHROPIC_API_KEY set in backend/.env
-
-## Why pytest.mark.asyncio + direct agent calls, not the HTTP API
-
-The golden set tests the agent's decision-making (which tools to call and
-in what sequence), not the FastAPI router or SSE streaming. By calling
-`agent.ainvoke()` directly we:
-
-  - Get deterministic results (no network flakes)
-  - Can inspect the full message history including tool_calls
-  - Run under 5 seconds per query instead of 15+ (no SSE overhead)
-  - Keep the test independent of the router's SSE workaround logic
-
-The SSE path is covered by separate Playwright E2E tests (not in this file).
+    cd backend
+    pytest tests/test_chat_golden.py -v -m integration          # all queries
+    pytest tests/test_chat_golden.py -v -m integration -k "aggregate"  # subset
 """
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 from typing import Any
 
+import httpx
 import pytest
 import yaml
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-
-from app.ai.chat_agent import get_chat_agent, reset_chat_agent
 
 # ---------------------------------------------------------------------------
-# Fixture: load the golden set once per session
+# Configuration
 # ---------------------------------------------------------------------------
 
+BACKEND_URL = "http://localhost:7000/api/v1/chat"
 
 GOLDEN_FILE = Path(__file__).parent / "golden" / "chat_queries.yaml"
 
@@ -67,99 +53,11 @@ GOLDEN_QUERIES = _load_golden_set()
 
 
 # ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _extract_tool_calls_from_messages(messages: list[Any]) -> list[str]:
-    """Walk a LangGraph agent's final message history and collect tool names.
-
-    The agent emits messages in this sequence:
-      1. HumanMessage (input)
-      2. AIMessage with tool_calls attribute (when it decides to use tools)
-      3. ToolMessage (tool result)
-      4. AIMessage with final text (synthesis)
-
-    Returns all tool names called, in order. Duplicates preserved.
-    """
-    names: list[str] = []
-    for msg in messages:
-        # Method 1: AIMessage.tool_calls attribute (LangChain >= 0.2)
-        tool_calls = getattr(msg, "tool_calls", None)
-        if tool_calls:
-            for tc in tool_calls:
-                if isinstance(tc, dict):
-                    name = tc.get("name")
-                else:
-                    name = getattr(tc, "name", None)
-                if name:
-                    names.append(name)
-        # Method 2: ToolMessage.name (fallback, also reliable)
-        if isinstance(msg, ToolMessage):
-            if msg.name and msg.name not in names:
-                # Prefer the tool_calls record, but catch tools that slipped through
-                pass  # Already captured via tool_calls above
-    return names
-
-
-def _extract_final_answer(messages: list[Any]) -> str:
-    """Find the last AIMessage with non-empty text content."""
-    for msg in reversed(messages):
-        if isinstance(msg, AIMessage):
-            content = msg.content
-            if isinstance(content, str) and content.strip():
-                return content
-            if isinstance(content, list):
-                parts = [
-                    block.get("text", "")
-                    for block in content
-                    if isinstance(block, dict) and block.get("type") == "text"
-                ]
-                text = "".join(parts)
-                if text.strip():
-                    return text
-    return ""
-
-
-# ---------------------------------------------------------------------------
 # Parametrized test
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="module", autouse=True)
-def _reset_agent_before_module() -> None:
-    """Clear the agent singleton so tests start from a known state."""
-    reset_chat_agent()
-    yield
-    reset_chat_agent()
-
-
-# ---------------------------------------------------------------------------
-# Known pytest-asyncio limitation
-# ---------------------------------------------------------------------------
-# The LangGraph agent + SQLAlchemy AsyncSessionLocal + psycopg AsyncConnectionPool
-# are all module-level singletons that bind to the event loop of whoever creates
-# them first. pytest-asyncio (default) creates a fresh event loop per test
-# function, so tests 2+ fail with "bound to a different event loop" when they
-# try to reuse a singleton created in test 1.
-#
-# Workarounds tried that DID NOT work:
-#   - asyncio_default_fixture_loop_scope = "session" in pyproject.toml
-#   - Function-scoped reset fixture (doesn't reset SQLAlchemy engine pool)
-#
-# Production is unaffected: uvicorn uses one persistent event loop for the
-# entire process lifetime. The end-to-end smoke test (curl + Playwright)
-# against the real /api/v1/chat endpoint shows everything working correctly
-# including memory follow-ups.
-#
-# For CI, run the golden set via the HTTP endpoint instead of direct
-# agent.ainvoke (the backend owns its own persistent loop). That's tracked
-# as a v2.1 follow-up — see `.planning/chat-agent-v2/SPEC.md`.
-#
-# For local dev, you can still run individual tests via `-k` to pick ONE
-# query at a time, which always passes.
-
-
+@pytest.mark.integration
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "golden",
@@ -167,41 +65,46 @@ def _reset_agent_before_module() -> None:
     ids=[q["id"] for q in GOLDEN_QUERIES],
 )
 async def test_golden_query(golden: dict[str, Any]) -> None:
-    """Run a single golden query against the agent and assert expectations."""
+    """Run a single golden query against the HTTP endpoint and assert expectations."""
     query = golden["query"]
     expected_tools: list[str] = golden.get("expected_tools", [])
     forbidden_tools: list[str] = golden.get("forbidden_tools", [])
     must_contain: list[str] = golden.get("must_contain", [])
     must_not_contain: list[str] = golden.get("must_not_contain", [])
 
-    agent = await get_chat_agent()
-    config = {"configurable": {"thread_id": f"golden-{golden['id']}"}}
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        resp = await client.post(
+            BACKEND_URL,
+            json={
+                "messages": [{"role": "user", "content": query}],
+                "stream": False,
+            },
+        )
 
-    final_state = await agent.ainvoke(
-        {"messages": [HumanMessage(content=query)]},
-        config=config,
+    assert resp.status_code == 200, (
+        f"[{golden['id']}] HTTP {resp.status_code}: {resp.text[:300]}"
     )
 
-    messages = final_state.get("messages", [])
-    called_tools = _extract_tool_calls_from_messages(messages)
-    answer = _extract_final_answer(messages)
+    data = resp.json()
+    tools_called: list[str] = data.get("tools_called", [])
+    answer: str = data.get("content", "")
     answer_lower = answer.lower()
 
-    # 1. Expected tools must all appear (order-independent, allows duplicates)
+    # 1. Expected tools must all appear (order-independent)
     for expected in expected_tools:
-        assert expected in called_tools, (
+        assert expected in tools_called, (
             f"[{golden['id']}] expected tool {expected!r} not called. "
-            f"Called: {called_tools}. Answer: {answer[:200]!r}"
+            f"Called: {tools_called}. Answer: {answer[:200]!r}"
         )
 
     # 2. Forbidden tools must NOT appear
     for forbidden in forbidden_tools:
-        assert forbidden not in called_tools, (
+        assert forbidden not in tools_called, (
             f"[{golden['id']}] forbidden tool {forbidden!r} was called. "
-            f"Called: {called_tools}. Answer: {answer[:200]!r}"
+            f"Called: {tools_called}. Answer: {answer[:200]!r}"
         )
 
-    # 3. Must-contain substrings (case-insensitive partial match)
+    # 3. Must-contain substrings (case-insensitive)
     for substring in must_contain:
         assert substring.lower() in answer_lower, (
             f"[{golden['id']}] missing substring {substring!r}. "
@@ -221,6 +124,7 @@ async def test_golden_query(golden: dict[str, Any]) -> None:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_golden_summary(capsys: pytest.CaptureFixture[str]) -> None:
     """Per-category pass-rate summary (non-failing reporter).

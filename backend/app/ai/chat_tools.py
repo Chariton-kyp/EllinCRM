@@ -243,6 +243,13 @@ async def aggregate_invoice_field(
 
     # JSONB extraction + numeric cast. Rows with non-numeric values become NULL,
     # which are naturally ignored by SQL aggregate functions.
+    #
+    # NOTE: This regex assumes JSONB numeric values use period as decimal
+    # separator (e.g. "2418.00", not "2.418,00"). This is guaranteed by the
+    # Gemini Flash extraction layer which normalizes all amounts to
+    # period-decimal format. If a future extractor produces comma-decimal
+    # values, this regex will silently produce 100x errors.
+    # See: backend/app/services/llm_extractor.py INVOICE_SYSTEM_PROMPT
     sql = text(
         f"""
         SELECT

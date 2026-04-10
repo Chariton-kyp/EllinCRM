@@ -37,11 +37,12 @@ import uuid
 from collections.abc import AsyncGenerator
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.ai.chat_agent import get_chat_agent
+from app.core.rate_limit import limiter
 from app.ai.chat_tools import TOOL_DISPLAY_NAMES_EL
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -86,6 +87,7 @@ class ChatResponseSync(BaseModel):
     content: str
     sources: list[dict[str, Any]]
     thread_id: str
+    tools_called: list[str] = Field(default_factory=list, description="Tool names invoked by the agent")
 
 
 # ---------------------------------------------------------------------------
@@ -213,7 +215,8 @@ def _build_sources_from_messages(agent_state: dict[str, Any]) -> list[dict[str, 
 
 
 @router.post("", response_model=None)
-async def chat(request: ChatRequest):
+@limiter.limit("10/minute")
+async def chat(request: FastAPIRequest, body: ChatRequest):
     """RAG-powered chat endpoint with SSE streaming via LangGraph agent.
 
     Phase 2A (v2):
@@ -223,7 +226,7 @@ async def chat(request: ChatRequest):
       - Greek system prompt enforcing "use tools for counts, never guess from RAG"
     """
     # Validate last message is from user
-    if request.messages[-1].role != "user":
+    if body.messages[-1].role != "user":
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Last message must be from user.",
@@ -235,12 +238,19 @@ async def chat(request: ChatRequest):
             detail="AI service unavailable. ANTHROPIC_API_KEY not configured.",
         )
 
-    # Build thread_id for conversation persistence (used in Phase 2C)
-    thread_id = request.thread_id or str(uuid.uuid4())
+    # Build thread_id for conversation persistence (used in Phase 2C).
+    # Always validate as UUID to prevent injection of arbitrary strings.
+    thread_id = str(uuid.uuid4())
+    if body.thread_id:
+        try:
+            uuid.UUID(body.thread_id)  # Validate format
+            thread_id = body.thread_id
+        except ValueError:
+            pass  # Invalid format, use the fresh UUID
 
-    if request.stream:
+    if body.stream:
         return StreamingResponse(
-            _stream_agent_response(request.messages, thread_id),
+            _stream_agent_response(body.messages, thread_id),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -250,7 +260,7 @@ async def chat(request: ChatRequest):
         )
 
     # Non-streaming path (kept for programmatic clients)
-    return await _sync_agent_response(request.messages, thread_id)
+    return await _sync_agent_response(body.messages, thread_id)
 
 
 # ---------------------------------------------------------------------------
@@ -497,8 +507,19 @@ async def _sync_agent_response(
 
     sources = _build_sources_from_messages(final_state)
 
+    # Extract tool names from agent message history
+    tools_called: list[str] = []
+    for msg in messages_out:
+        tc = getattr(msg, "tool_calls", None)
+        if tc:
+            for call in tc:
+                name = call.get("name") if isinstance(call, dict) else getattr(call, "name", None)
+                if name:
+                    tools_called.append(name)
+
     return ChatResponseSync(
         content=answer,
         sources=sources,
         thread_id=thread_id,
+        tools_called=tools_called,
     )
