@@ -13,6 +13,11 @@ license = {text = "MIT"}
 testpaths = ["tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
+# Phase 2D note: chat golden tests use module-level singletons bound to the
+# first test's event loop. pytest-asyncio isolates loops per test function,
+# so subsequent tests fail with "bound to a different event loop". Run one
+# test at a time via `-k` or use the HTTP endpoint directly. See
+# tests/test_chat_golden.py for the full explanation.
 addopts = [
     "-v",
     "--tb=short",

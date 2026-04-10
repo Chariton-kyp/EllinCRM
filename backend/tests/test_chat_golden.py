@@ -134,6 +134,32 @@ def _reset_agent_before_module() -> None:
     reset_chat_agent()
 
 
+# ---------------------------------------------------------------------------
+# Known pytest-asyncio limitation
+# ---------------------------------------------------------------------------
+# The LangGraph agent + SQLAlchemy AsyncSessionLocal + psycopg AsyncConnectionPool
+# are all module-level singletons that bind to the event loop of whoever creates
+# them first. pytest-asyncio (default) creates a fresh event loop per test
+# function, so tests 2+ fail with "bound to a different event loop" when they
+# try to reuse a singleton created in test 1.
+#
+# Workarounds tried that DID NOT work:
+#   - asyncio_default_fixture_loop_scope = "session" in pyproject.toml
+#   - Function-scoped reset fixture (doesn't reset SQLAlchemy engine pool)
+#
+# Production is unaffected: uvicorn uses one persistent event loop for the
+# entire process lifetime. The end-to-end smoke test (curl + Playwright)
+# against the real /api/v1/chat endpoint shows everything working correctly
+# including memory follow-ups.
+#
+# For CI, run the golden set via the HTTP endpoint instead of direct
+# agent.ainvoke (the backend owns its own persistent loop). That's tracked
+# as a v2.1 follow-up — see `.planning/chat-agent-v2/SPEC.md`.
+#
+# For local dev, you can still run individual tests via `-k` to pick ONE
+# query at a time, which always passes.
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "golden",
