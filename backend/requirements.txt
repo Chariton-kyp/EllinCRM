@@ -5,6 +5,7 @@
 fastapi>=0.128.0
 uvicorn[standard]>=0.32.0
 python-multipart>=0.0.12
+slowapi>=0.1
 
 # Data Validation
 pydantic>=2.12.0
@@ -28,12 +29,25 @@ sentence-transformers>=3.4.0
 pgvector>=0.3.0
 numpy>=1.26.0
 
-# LLM Router
+# LLM Router (Extraction path)
 # Replaced litellm after March 2026 TeamPCP supply-chain compromise (CVE-2026-35029).
 # Mozilla.ai's any-llm calls official provider SDKs (anthropic, google-genai)
 # directly — no central proxy. The pip package name is `any-llm-sdk`; the
 # import module is `any_llm`.
+# Used by extraction layer (form/email/invoice LLM parsing) only.
 any-llm-sdk[anthropic,gemini]==1.13.*
+
+# LangGraph Agent (Chat path)
+# Chat-agent v2 uses LangGraph's create_react_agent prebuilt helper for
+# tool-calling over structured DB aggregate functions + hybrid search.
+# Same official SDKs under the hood (anthropic, google-genai) as any-llm-sdk.
+# Production/Stable since Oct 2025.
+langgraph>=1.1.6,<1.2
+langchain-core>=1.2.0,<1.3
+langchain-anthropic>=1.4.0,<1.5
+langchain-google-genai>=4.2.1,<4.3
+# Postgres checkpointer for conversation memory (Phase 2C)
+langgraph-checkpoint-postgres>=3.0.5,<3.1
 
 # Logging
 structlog>=24.4.0

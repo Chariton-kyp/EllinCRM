@@ -39,6 +39,19 @@ class Settings(BaseSettings):
     db_pool_size: int = Field(default=5, ge=1, le=20)
     db_max_overflow: int = Field(default=10, ge=0, le=50)
 
+    # Read-only database (chat agent tools — defense in depth)
+    # If unset, falls back to DATABASE_URL with a runtime SET LOCAL statement_timeout.
+    # Prod deployments should provision a dedicated `ellincrm_readonly` Postgres role
+    # (see Alembic migration 006) and set READONLY_DATABASE_URL explicitly.
+    readonly_database_url: PostgresDsn | None = Field(
+        default=None,
+        description="Dedicated read-only PostgreSQL URL for chat agent tools"
+    )
+    readonly_db_password: str | None = Field(
+        default=None,
+        description="Password for the ellincrm_readonly role (used when rewriting DATABASE_URL)"
+    )
+
     # Paths
     data_path: Path = Field(default=Path("/app/data"))
     output_path: Path = Field(default=Path("/app/output"))

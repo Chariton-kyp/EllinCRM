@@ -14,11 +14,14 @@ from typing import Any
 from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.ai.embeddings import get_embedding_status, start_embedding_model_loading
 from app.ai.ai_router import get_ai_router, init_ai_router
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
+from app.core.rate_limit import limiter
 from app.db.database import close_db, init_db
 from app.routers import extraction_router, records_router
 from app.routers.chat import router as chat_router
@@ -87,6 +90,10 @@ app = FastAPI(
     redoc_url="/redoc" if settings.is_development else None,
     lifespan=lifespan,
 )
+
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configure CORS
 app.add_middleware(

@@ -82,6 +82,7 @@ services:
       - ./backend/app:/app/app
       - ./backend/tests:/app/tests
       - ./backend/alembic:/app/alembic
+      - ./backend/scripts:/app/scripts
       - ./dummy_data:/app/data:ro
       - ./output:/app/output
       # Google Sheets credentials (create this folder and add your credentials.json)
