@@ -167,7 +167,16 @@ Use the **Demo Mode** button on the dashboard to ingest all 25 in one click.
 
 ## License
 
-MIT — see [LICENSE](LICENSE) (to be added)
+**Source-available for portfolio viewing only — not open source.**
+
+This repository is published publicly as a **portfolio showcase** of the
+author's work. You may read, study, and evaluate the code, but you may **not**
+use it in any product, service, or business — commercial or otherwise — and
+you may **not** redistribute, modify, or create derivative works without prior
+written permission.
+
+See [LICENSE.md](LICENSE.md) for the full terms. For commercial licensing
+enquiries, contact <haritos19@gmail.com>.
 
 ---
 
