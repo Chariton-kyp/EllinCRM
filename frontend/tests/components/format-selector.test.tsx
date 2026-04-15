@@ -6,6 +6,21 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { FormatSelector } from "@/components/export/format-selector";
 
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => {
+    const translations: Record<string, string> = {
+      format: "Export Format",
+      csv: "CSV",
+      csvDescription: "Comma-separated values",
+      excel: "Excel",
+      excelDescription: "Microsoft Excel format",
+      json: "JSON",
+      jsonDescription: "JavaScript Object Notation",
+    };
+    return translations[key] ?? key;
+  },
+}));
+
 describe("FormatSelector", () => {
   const defaultProps = {
     value: "csv" as const,

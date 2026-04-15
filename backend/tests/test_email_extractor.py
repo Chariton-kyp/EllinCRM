@@ -60,28 +60,46 @@ class TestEmailExtractor:
 
         data = result.email_data
         assert data.email_type == EmailType.CLIENT_INQUIRY
-        assert "spyros.michail@techcorp.gr" in data.sender_email
+        assert "nikos@tavernaparadeisos.gr" in data.sender_email
         # Company might be extracted from body or not, depending on format
         # The important thing is extraction succeeded without errors
 
     def test_extract_invoice_notification(
         self, extractor: EmailExtractor, emails_path: Path
     ) -> None:
-        """Test extraction from an invoice notification email."""
-        email_file = emails_path / "email_05.eml"
-        if not email_file.exists():
-            pytest.skip("Dummy data not available")
+        """Test the invoice-notification classification path using synthetic input.
 
-        result = extractor.extract(email_file)
+        The shipped dummy-data email set now models 10 Greek-business inbound
+        client inquiries only (post-rebrand), so no file in dummy_data/emails
+        should classify as INVOICE_NOTIFICATION. This test instead verifies the
+        classifier on a minimal synthetic EML, which keeps coverage of the
+        branch without depending on fixture content.
+        """
+        synthetic = (
+            "From: sender@vendor.gr\n"
+            "To: info@ellincrm.gr\n"
+            "Subject: Τιμολόγιο #EC-2025-777 — Πληρωμή απαιτείται\n"
+            "Date: Mon, 20 Jan 2025 10:00:00 +0200\n"
+            "Content-Type: text/plain; charset=UTF-8\n"
+            "\n"
+            "Αριθμός: EC-2025-777\n"
+            "Καθαρή Αξία: €1,000.00\n"
+            "Σύνολο: €1,240.00\n"
+        )
+        with NamedTemporaryFile(
+            mode="w", suffix=".eml", delete=False, encoding="utf-8"
+        ) as f:
+            f.write(synthetic)
+            f.flush()
+            file_path = Path(f.name)
+        try:
+            result = extractor.extract(file_path)
 
-        assert result.record_type == RecordType.EMAIL
-        assert not result.has_errors
-        assert result.email_data is not None
-
-        data = result.email_data
-        assert data.email_type == EmailType.INVOICE_NOTIFICATION
-        # Invoice classification is correct - body extraction will be enhanced with AI
-        # The important thing is correct classification based on subject/keywords
+            assert result.record_type == RecordType.EMAIL
+            assert result.email_data is not None
+            assert result.email_data.email_type == EmailType.INVOICE_NOTIFICATION
+        finally:
+            file_path.unlink()
 
     def test_extract_all_emails(
         self, extractor: EmailExtractor, emails_path: Path
@@ -105,10 +123,12 @@ class TestEmailExtractor:
             else:
                 invoice_count += 1
 
-        # Verify distribution (60% inquiries, 40% notifications)
+        # Post-rebrand, the shipped dummy-data set is 10 Greek inbound
+        # client inquiries; the invoice-notification classification path is
+        # exercised separately in test_extract_invoice_notification.
         total = len(email_files)
+        assert inquiry_count + invoice_count == total
         assert inquiry_count > 0, "No client inquiries found"
-        assert invoice_count > 0, "No invoice notifications found"
 
     def test_missing_file(self, extractor: EmailExtractor) -> None:
         """Test extraction from non-existent file."""

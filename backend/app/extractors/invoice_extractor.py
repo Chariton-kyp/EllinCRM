@@ -224,11 +224,14 @@ class InvoiceExtractor(BaseExtractor[InvoiceData]):
         # Try to find in text content
         text = soup.get_text()
 
-        # Pattern for invoice numbers
+        # Pattern for invoice numbers — supports any 2+ letter prefix
+        # (TF- legacy, EC- current EllinCRM, easily extensible).
+        invoice_num_regex = r"[A-Z]{2,}-\d{4}-\d{3}"
         patterns = [
-            r"Αριθμός:\s*(TF-\d{4}-\d{3})",
-            r"Invoice #?:?\s*(TF-\d{4}-\d{3})",
-            r"(TF-\d{4}-\d{3})",
+            rf"Αριθμός:\s*({invoice_num_regex})",
+            rf"Τιμολόγιο\s+({invoice_num_regex})",
+            rf"Invoice #?:?\s*({invoice_num_regex})",
+            rf"({invoice_num_regex})",
         ]
 
         for pattern in patterns:
@@ -236,11 +239,10 @@ class InvoiceExtractor(BaseExtractor[InvoiceData]):
             if match:
                 return match.group(1)
 
-        # Try to extract from filename
-        if "TF-" in filename:
-            match = re.search(r"(TF-\d{4}-\d{3})", filename)
-            if match:
-                return match.group(1)
+        # Fallback: extract from filename
+        match = re.search(rf"({invoice_num_regex})", filename)
+        if match:
+            return match.group(1)
 
         return None
 
