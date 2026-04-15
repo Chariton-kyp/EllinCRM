@@ -28,9 +28,15 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel any in-flight run on the same ref so a rapid sequence of pushes
+# doesn't pile up idle Actions minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PYTHON_VERSION: "3.12"
-  NODE_VERSION: "20"
+  NODE_VERSION: "22"
 
 jobs:
   # ============================================
@@ -175,7 +181,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        # Pin to a specific release — never use @master for third-party actions.
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
           scan-ref: ''
