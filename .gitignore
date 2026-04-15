@@ -132,6 +132,7 @@ output/
 *.h5
 *.pkl
 *.joblib
-models/
-!models/.gitkeep
+# Root-level ML weight directory only — do NOT match backend/app/models/ Python package
+/models/
+!/models/.gitkeep
 .cache/huggingface/
