@@ -62,9 +62,9 @@ class TestFormExtractor:
 
         data = result.form_data
         assert data.full_name == "Νίκος Παπαδόπουλος"
-        assert data.email == "nikos.papadopoulos@example.gr"
-        assert data.phone == "210-1234567"
-        assert data.company == "Digital Marketing Pro"
+        assert data.email == "nikos@tavernaparadeisos.gr"
+        assert data.phone == "6945123456"
+        assert data.company == "Ταβέρνα Ο Παράδεισος"
 
     def test_extract_all_forms(
         self, extractor: FormExtractor, forms_path: Path

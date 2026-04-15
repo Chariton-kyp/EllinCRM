@@ -48,12 +48,13 @@ PATTERNS = {
         r"Θέση:\s*(.+?)(?:\n|$)",
         r"Position:\s*(.+?)(?:\n|$)",
     ],
-    # Invoice notification patterns
+    # Invoice notification patterns — accept any 2+ letter prefix
+    # (TF- legacy TechFlow, EC- current EllinCRM, easily extensible).
     "invoice_number": [
-        r"Αριθμός:\s*(TF-\d{4}-\d{3})",
-        r"Invoice #?:\s*(TF-\d{4}-\d{3})",
-        r"Τιμολόγιο #?(TF-\d{4}-\d{3})",
-        r"#(TF-\d{4}-\d{3})",
+        r"Αριθμός:\s*([A-Z]{2,}-\d{4}-\d{3})",
+        r"Invoice #?:\s*([A-Z]{2,}-\d{4}-\d{3})",
+        r"Τιμολόγιο #?([A-Z]{2,}-\d{4}-\d{3})",
+        r"#([A-Z]{2,}-\d{4}-\d{3})",
     ],
     "net_amount": [
         r"Καθαρή Αξία:\s*€?([\d,\.]+)",
@@ -333,7 +334,7 @@ class EmailExtractor(BaseExtractor[EmailData]):
         invoice_score = sum(1 for kw in INVOICE_KEYWORDS if kw in text)
 
         # Invoice notifications typically have specific patterns
-        has_invoice_number = bool(re.search(r"TF-\d{4}-\d{3}", text, re.IGNORECASE))
+        has_invoice_number = bool(re.search(r"[A-Z]{2,}-\d{4}-\d{3}", text, re.IGNORECASE))
         has_amount = bool(re.search(r"€\s*[\d,\.]+|[\d,\.]+\s*€", text))
 
         if invoice_score >= 2 or (has_invoice_number and has_amount):
