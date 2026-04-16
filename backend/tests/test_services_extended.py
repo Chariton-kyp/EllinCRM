@@ -61,7 +61,9 @@ class TestRecordServiceExtended:
         )
 
     @pytest.mark.anyio
-    async def test_approve_with_auto_sync(self, record_service, mock_repository, mock_sheets_service, sample_record):
+    async def test_approve_with_auto_sync(
+        self, record_service, mock_repository, mock_sheets_service, sample_record
+    ):
         """Test approve triggers auto-sync when configured."""
         mock_repository.get_by_id.return_value = sample_record
         mock_repository.update.return_value = sample_record
@@ -81,7 +83,9 @@ class TestRecordServiceExtended:
         mock_repository.commit.assert_called()
 
     @pytest.mark.anyio
-    async def test_reject_with_auto_sync(self, record_service, mock_repository, mock_sheets_service, sample_record):
+    async def test_reject_with_auto_sync(
+        self, record_service, mock_repository, mock_sheets_service, sample_record
+    ):
         """Test reject triggers auto-sync when configured."""
         mock_repository.get_by_id.return_value = sample_record
         mock_repository.update.return_value = sample_record
@@ -99,7 +103,9 @@ class TestRecordServiceExtended:
         assert result.status == "rejected"
 
     @pytest.mark.anyio
-    async def test_edit_with_auto_sync(self, record_service, mock_repository, mock_sheets_service, sample_record):
+    async def test_edit_with_auto_sync(
+        self, record_service, mock_repository, mock_sheets_service, sample_record
+    ):
         """Test edit triggers auto-sync when configured."""
         mock_repository.get_by_id.return_value = sample_record
         mock_repository.update.return_value = sample_record
@@ -131,7 +137,9 @@ class TestRecordServiceExtended:
         assert result.status == "approved"
 
     @pytest.mark.anyio
-    async def test_trigger_auto_sync_no_background_tasks(self, record_service, mock_repository, mock_sheets_service, sample_record):
+    async def test_trigger_auto_sync_no_background_tasks(
+        self, record_service, mock_repository, mock_sheets_service, sample_record
+    ):
         """Test auto-sync runs immediately without background tasks."""
         mock_repository.get_by_id.return_value = sample_record
         mock_repository.update.return_value = sample_record
@@ -219,7 +227,9 @@ class TestExportServiceExtended:
         assert "INVOICE" in content_str or "INV-001" in content_str
 
     @pytest.mark.anyio
-    async def test_export_xlsx_with_summary_sheet(self, export_service, mock_repository, sample_records):
+    async def test_export_xlsx_with_summary_sheet(
+        self, export_service, mock_repository, sample_records
+    ):
         """Test XLSX export includes summary sheet."""
         mock_repository.get_exportable_records.return_value = sample_records
         mock_repository.update.return_value = sample_records[0]
@@ -241,6 +251,7 @@ class TestExportServiceExtended:
         content, filename, content_type, exported_ids = await export_service.export_records(request)
 
         import json
+
         data = json.loads(content)
 
         assert "exported_at" in data
@@ -249,7 +260,9 @@ class TestExportServiceExtended:
         assert data["record_count"] == len(sample_records)
 
     @pytest.mark.anyio
-    async def test_export_rejected_records_not_marked_exported(self, export_service, mock_repository):
+    async def test_export_rejected_records_not_marked_exported(
+        self, export_service, mock_repository
+    ):
         """Test rejected records keep their status after export."""
         rejected_record = ExtractionRecordDB(
             id=uuid4(),
@@ -455,6 +468,7 @@ class TestLoggingEdgeCases:
         )
         # Give the task a chance to run
         import asyncio
+
         await asyncio.sleep(0.1)
 
     def test_audit_logger_with_empty_extraction_id(self):

@@ -48,7 +48,7 @@ def invoices_path(dummy_data_path: Path) -> Path:
 @pytest.fixture
 def sample_form_html() -> str:
     """Sample HTML form content for testing."""
-    return '''<!DOCTYPE html>
+    return """<!DOCTYPE html>
 <html lang="el">
 <head><meta charset="UTF-8"><title>Test Form</title></head>
 <body>
@@ -63,13 +63,13 @@ def sample_form_html() -> str:
         <select name="priority"><option value="high" selected>Υψηλή</option></select>
     </form>
 </body>
-</html>'''
+</html>"""
 
 
 @pytest.fixture
 def sample_email_eml() -> str:
     """Sample EML content for testing."""
-    return '''From: Test User <test@example.gr>
+    return """From: Test User <test@example.gr>
 To: info@ellincrm.gr
 Subject: Test Request
 Date: Mon, 20 Jan 2024 10:30:00 +0200
@@ -87,13 +87,13 @@ Content-Type: text/plain; charset=UTF-8
 
 Χρειαζόμαστε CRM system.
 
-Ευχαριστώ'''
+Ευχαριστώ"""
 
 
 @pytest.fixture
 def sample_invoice_html() -> str:
     """Sample HTML invoice content for testing."""
-    return '''<!DOCTYPE html>
+    return """<!DOCTYPE html>
 <html lang="el">
 <head><meta charset="UTF-8"><title>Invoice</title></head>
 <body>
@@ -119,4 +119,4 @@ def sample_invoice_html() -> str:
         <strong>ΣΥΝΟΛΟ:</strong> €124.00
     </div>
 </body>
-</html>'''
+</html>"""

@@ -161,9 +161,7 @@ class SimilaritySearchService:
             List of (record, similarity_score) tuples, excluding the reference.
         """
         # Get the embedding for the reference record
-        stmt = select(DocumentEmbeddingDB).where(
-            DocumentEmbeddingDB.record_id == record_id
-        )
+        stmt = select(DocumentEmbeddingDB).where(DocumentEmbeddingDB.record_id == record_id)
         result = await self.db.execute(stmt)
         embedding_row = result.scalar_one_or_none()
 
@@ -246,9 +244,7 @@ class SimilaritySearchService:
         content_normalized = normalize_greek_text(content_text)
 
         # Check if embedding already exists
-        stmt = select(DocumentEmbeddingDB).where(
-            DocumentEmbeddingDB.record_id == record.id
-        )
+        stmt = select(DocumentEmbeddingDB).where(DocumentEmbeddingDB.record_id == record.id)
         result = await self.db.execute(stmt)
         existing = result.scalar_one_or_none()
 
@@ -363,11 +359,11 @@ class SimilaritySearchService:
         embedding_ids = []
         normalized_texts = []
 
-        for (record, content_text, content_normalized), embedding in zip(valid_records, embeddings):
+        for (record, content_text, content_normalized), embedding in zip(
+            valid_records, embeddings, strict=False
+        ):
             # Check if exists
-            stmt = select(DocumentEmbeddingDB).where(
-                DocumentEmbeddingDB.record_id == record.id
-            )
+            stmt = select(DocumentEmbeddingDB).where(DocumentEmbeddingDB.record_id == record.id)
             result = await self.db.execute(stmt)
             existing = result.scalar_one_or_none()
 
@@ -394,7 +390,7 @@ class SimilaritySearchService:
         await self.db.commit()
 
         # Update search vectors in batch
-        for emb_id, normalized in zip(embedding_ids, normalized_texts):
+        for emb_id, normalized in zip(embedding_ids, normalized_texts, strict=False):
             await self._update_search_vector(emb_id, normalized)
 
         logger.info(
@@ -413,9 +409,7 @@ class SimilaritySearchService:
         Returns:
             True if deleted, False if not found.
         """
-        stmt = select(DocumentEmbeddingDB).where(
-            DocumentEmbeddingDB.record_id == record_id
-        )
+        stmt = select(DocumentEmbeddingDB).where(DocumentEmbeddingDB.record_id == record_id)
         result = await self.db.execute(stmt)
         embedding = result.scalar_one_or_none()
 
@@ -433,9 +427,7 @@ class SimilaritySearchService:
             Dictionary with embedding statistics.
         """
         # Count total embeddings
-        count_result = await self.db.execute(
-            text("SELECT COUNT(*) FROM document_embeddings")
-        )
+        count_result = await self.db.execute(text("SELECT COUNT(*) FROM document_embeddings"))
         total = count_result.scalar() or 0
 
         # Count records without embeddings

@@ -309,10 +309,7 @@ async def approve_batch(
     """
     approve_req = ApproveRequest(notes=request.notes)
     return await service.approve_batch(
-        request.record_ids,
-        approve_req,
-        None,
-        background_tasks=background_tasks
+        request.record_ids, approve_req, None, background_tasks=background_tasks
     )
 
 
@@ -334,10 +331,7 @@ async def reject_batch(
     """
     reject_req = RejectRequest(reason=request.reason)
     return await service.reject_batch(
-        request.record_ids,
-        reject_req,
-        None,
-        background_tasks=background_tasks
+        request.record_ids, reject_req, None, background_tasks=background_tasks
     )
 
 
@@ -443,7 +437,7 @@ async def create_spreadsheet(
                     "Please create a spreadsheet manually in your Google Drive, "
                     "share it with the service account email "
                     "as Editor, then use 'Sync to Existing' with that spreadsheet's ID."
-                )
+                ),
             )
 
         raise HTTPException(status_code=500, detail=f"Failed to create spreadsheet: {e}")

@@ -63,7 +63,7 @@ def _build_readonly_url() -> str | None:
     if "postgresql://" in main_url and "postgresql+asyncpg://" not in main_url:
         main_url = main_url.replace("postgresql://", "postgresql+asyncpg://")
 
-    readonly_password = getattr(settings, "readonly_db_password", None)
+    readonly_password = settings.readonly_db_password_value
     if not readonly_password:
         # Same password as main user — only acceptable in dev
         logger.warning(
@@ -148,9 +148,7 @@ async def get_readonly_session() -> AsyncGenerator[AsyncSession, None]:
         from app.db.database import AsyncSessionLocal
 
         if AsyncSessionLocal is None:
-            raise RuntimeError(
-                "No database session available. Configure DATABASE_URL."
-            )
+            raise RuntimeError("No database session available. Configure DATABASE_URL.")
         session_maker = AsyncSessionLocal
     else:
         session_maker = _ReadonlySessionLocal

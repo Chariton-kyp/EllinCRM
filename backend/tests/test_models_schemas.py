@@ -110,6 +110,7 @@ class TestEmailData:
     def test_valid_email_data(self) -> None:
         """Test valid email data."""
         from app.models.schemas import EmailType
+
         email = EmailData(
             email_type=EmailType.CLIENT_INQUIRY,
             sender_name="Test Sender",
@@ -125,6 +126,7 @@ class TestEmailData:
     def test_email_type_inquiry(self) -> None:
         """Test email with type inquiry."""
         from app.models.schemas import EmailType
+
         email = EmailData(
             email_type=EmailType.CLIENT_INQUIRY,
             sender_name="Test",

@@ -6,6 +6,7 @@ Audit logs are persisted to the database for permanent storage and querying.
 """
 
 import asyncio
+import contextlib
 import logging
 import sys
 import uuid
@@ -40,7 +41,8 @@ def setup_logging() -> None:
     if settings.is_production:
         # JSON output for production (easier to parse by log aggregators)
         structlog.configure(
-            processors=shared_processors + [
+            processors=shared_processors
+            + [
                 structlog.processors.format_exc_info,
                 JSONRenderer(),
             ],
@@ -52,7 +54,8 @@ def setup_logging() -> None:
     else:
         # Pretty output for development
         structlog.configure(
-            processors=shared_processors + [
+            processors=shared_processors
+            + [
                 structlog.processors.format_exc_info,
                 structlog.dev.ConsoleRenderer(colors=True),
             ],
@@ -120,11 +123,10 @@ class AuditLogger:
                     # Try to parse record_id as UUID, fall back to None
                     parsed_record_id = None
                     if record_id:
-                        try:
+                        with contextlib.suppress(ValueError, AttributeError):
+                            # Not a valid UUID - leave parsed_record_id as None
+                            # and store original in details below.
                             parsed_record_id = uuid.UUID(record_id)
-                        except (ValueError, AttributeError):
-                            # Not a valid UUID - store original in details
-                            pass
 
                     # Include original identifier in details if not a valid UUID
                     final_details = details.copy() if details else {}

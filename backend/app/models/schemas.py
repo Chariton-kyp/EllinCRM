@@ -3,37 +3,51 @@ Pydantic schemas for data extraction and validation.
 Defines all data models for forms, emails, invoices, and extraction results.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
-class RecordType(str, Enum):
+def _now_naive_utc() -> datetime:
+    """Return a tz-naive UTC datetime.
+
+    Python 3.12+ deprecates ``datetime.utcnow()``; this helper is the
+    drop-in replacement that preserves the existing naive-UTC contract
+    used throughout the data layer.
+    """
+    return datetime.now(UTC).replace(tzinfo=None)
+
+
+class RecordType(StrEnum):
     """Type of data record."""
+
     FORM = "FORM"
     EMAIL = "EMAIL"
     INVOICE = "INVOICE"
 
 
-class EmailType(str, Enum):
+class EmailType(StrEnum):
     """Type of email content."""
+
     CLIENT_INQUIRY = "client_inquiry"
     INVOICE_NOTIFICATION = "invoice_notification"
 
 
-class Priority(str, Enum):
+class Priority(StrEnum):
     """Priority level for requests."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
 
 
-class ExtractionStatus(str, Enum):
+class ExtractionStatus(StrEnum):
     """Status of an extraction record."""
+
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -130,12 +144,14 @@ class ExtractionResult(BaseModel):
     id: UUID = Field(default_factory=uuid4, description="Unique extraction ID")
     source_file: str = Field(..., description="Source file path")
     record_type: RecordType = Field(..., description="Type of extracted record")
-    extracted_at: datetime = Field(default_factory=datetime.utcnow, description="Extraction timestamp")
+    extracted_at: datetime = Field(
+        default_factory=_now_naive_utc, description="Extraction timestamp"
+    )
     confidence_score: float = Field(
         default=1.0,
         ge=0.0,
         le=1.0,
-        description="Extraction confidence (1.0 for rule-based, varies for AI)"
+        description="Extraction confidence (1.0 for rule-based, varies for AI)",
     )
     warnings: list[str] = Field(default_factory=list, description="Extraction warnings")
     errors: list[str] = Field(default_factory=list, description="Extraction errors")
@@ -170,18 +186,16 @@ class ExtractionRecord(BaseModel):
     id: UUID = Field(default_factory=uuid4, description="Record ID")
     extraction: ExtractionResult = Field(..., description="Extraction result")
     status: ExtractionStatus = Field(
-        default=ExtractionStatus.PENDING,
-        description="Current workflow status"
+        default=ExtractionStatus.PENDING, description="Current workflow status"
     )
     reviewed_by: str | None = Field(default=None, description="User who reviewed")
     reviewed_at: datetime | None = Field(default=None, description="Review timestamp")
     review_notes: str | None = Field(default=None, description="Review notes")
     edited_data: dict[str, Any] | None = Field(
-        default=None,
-        description="User-edited data (if status is EDITED)"
+        default=None, description="User-edited data (if status is EDITED)"
     )
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_now_naive_utc)
+    updated_at: datetime = Field(default_factory=_now_naive_utc)
 
     @property
     def is_pending(self) -> bool:
@@ -205,45 +219,48 @@ class ExtractionRecord(BaseModel):
 # Request/Response schemas for API
 class ApproveRequest(BaseModel):
     """Request to approve an extraction record."""
+
     notes: str | None = Field(default=None, description="Approval notes")
 
 
 class RejectRequest(BaseModel):
     """Request to reject an extraction record."""
+
     reason: str = Field(..., min_length=1, description="Rejection reason")
 
 
 class EditRequest(BaseModel):
     """Request to edit an extraction record."""
+
     data: dict[str, Any] = Field(..., description="Edited data")
     notes: str | None = Field(default=None, description="Edit notes")
 
 
 class ExportRequest(BaseModel):
     """Request to export records."""
+
     record_ids: list[UUID] | None = Field(
-        default=None,
-        description="Specific record IDs to export (None = all approved)"
+        default=None, description="Specific record IDs to export (None = all approved)"
     )
-    format: Literal["csv", "xlsx", "json"] = Field(default="csv", description="Export format (csv, xlsx, json)")
+    format: Literal["csv", "xlsx", "json"] = Field(
+        default="csv", description="Export format (csv, xlsx, json)"
+    )
     include_rejected: bool = Field(default=False, description="Include rejected records")
 
 
 class BatchApproveRequest(BaseModel):
     """Request to approve multiple records."""
+
     record_ids: list[UUID] = Field(..., description="List of record UUIDs to approve", alias="ids")
     notes: str | None = Field(default=None, description="Approval notes for all records")
 
-    model_config = {
-        "populate_by_name": True
-    }
+    model_config = {"populate_by_name": True}
 
 
 class BatchRejectRequest(BaseModel):
     """Request to reject multiple records."""
+
     record_ids: list[UUID] = Field(..., description="List of record UUIDs to reject", alias="ids")
     reason: str = Field(..., min_length=1, description="Rejection reason for all records")
 
-    model_config = {
-        "populate_by_name": True
-    }
+    model_config = {"populate_by_name": True}

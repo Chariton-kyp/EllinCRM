@@ -69,9 +69,7 @@ class TestBaseExtractor:
         assert extractor.record_type == RecordType.FORM
         assert hasattr(extractor, "logger")
 
-    def test_read_file_success(
-        self, extractor: ConcreteExtractor, temp_file: Path
-    ) -> None:
+    def test_read_file_success(self, extractor: ConcreteExtractor, temp_file: Path) -> None:
         """Test reading a file successfully."""
         content = extractor.read_file(temp_file)
         assert "<html>" in content
@@ -82,9 +80,7 @@ class TestBaseExtractor:
         with pytest.raises(FileNotFoundError, match="File not found"):
             extractor.read_file(Path("/nonexistent/file.html"))
 
-    def test_read_file_utf8(
-        self, extractor: ConcreteExtractor, tmp_path: Path
-    ) -> None:
+    def test_read_file_utf8(self, extractor: ConcreteExtractor, tmp_path: Path) -> None:
         """Test reading a file with Greek characters."""
         file = tmp_path / "greek.html"
         file.write_text("<p>Καλημέρα κόσμε</p>", encoding="utf-8")
@@ -102,9 +98,7 @@ class TestCreateResult:
         """Create extractor instance."""
         return ConcreteExtractor()
 
-    def test_create_result_with_form_data(
-        self, extractor: ConcreteExtractor
-    ) -> None:
+    def test_create_result_with_form_data(self, extractor: ConcreteExtractor) -> None:
         """Test creating result with ContactFormData."""
         form_data = ContactFormData(
             full_name="Μαρία Παπαδοπούλου",
@@ -203,9 +197,7 @@ class TestCreateResult:
         assert result.invoice_data is not None
         assert result.invoice_data.invoice_number == "INV-001"
 
-    def test_create_result_without_data(
-        self, extractor: ConcreteExtractor
-    ) -> None:
+    def test_create_result_without_data(self, extractor: ConcreteExtractor) -> None:
         """Test creating result without data (error case)."""
         result = extractor._create_result(
             source_file="empty.html",
@@ -220,9 +212,7 @@ class TestCreateResult:
         assert result.confidence_score == 0.0
         assert "Failed to extract data" in result.errors
 
-    def test_create_result_generates_uuid(
-        self, extractor: ConcreteExtractor
-    ) -> None:
+    def test_create_result_generates_uuid(self, extractor: ConcreteExtractor) -> None:
         """Test that result has a valid UUID."""
         form_data = ContactFormData(
             full_name="Test",
@@ -237,9 +227,7 @@ class TestCreateResult:
         assert result.id is not None
         assert isinstance(result.id, UUID)
 
-    def test_create_result_empty_warnings_errors(
-        self, extractor: ConcreteExtractor
-    ) -> None:
+    def test_create_result_empty_warnings_errors(self, extractor: ConcreteExtractor) -> None:
         """Test result has empty lists when no warnings/errors."""
         form_data = ContactFormData(
             full_name="Test",
@@ -263,9 +251,7 @@ class TestLogExtraction:
         """Create extractor instance."""
         return ConcreteExtractor()
 
-    def test_log_extraction_success(
-        self, extractor: ConcreteExtractor
-    ) -> None:
+    def test_log_extraction_success(self, extractor: ConcreteExtractor) -> None:
         """Test logging successful extraction."""
         with patch("app.extractors.base.audit_logger") as mock_audit:
             extractor._log_extraction(
@@ -287,9 +273,7 @@ class TestLogExtraction:
                 error_message=None,
             )
 
-    def test_log_extraction_failure(
-        self, extractor: ConcreteExtractor
-    ) -> None:
+    def test_log_extraction_failure(self, extractor: ConcreteExtractor) -> None:
         """Test logging failed extraction."""
         with patch("app.extractors.base.audit_logger") as mock_audit:
             extractor._log_extraction(
@@ -355,9 +339,7 @@ class TestExtractMethod:
         file.write_text("<form>Test form</form>", encoding="utf-8")
         return file
 
-    def test_extract_returns_result(
-        self, extractor: ConcreteExtractor, temp_file: Path
-    ) -> None:
+    def test_extract_returns_result(self, extractor: ConcreteExtractor, temp_file: Path) -> None:
         """Test extract method returns ExtractionResult."""
         result = extractor.extract(temp_file)
 
@@ -365,9 +347,7 @@ class TestExtractMethod:
         assert result.form_data is not None
         assert result.confidence_score == 0.95
 
-    def test_extract_file_not_found(
-        self, extractor: ConcreteExtractor
-    ) -> None:
+    def test_extract_file_not_found(self, extractor: ConcreteExtractor) -> None:
         """Test extract with missing file."""
         with pytest.raises(FileNotFoundError):
             extractor.extract(Path("/nonexistent/form.html"))

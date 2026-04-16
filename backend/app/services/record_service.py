@@ -48,18 +48,14 @@ async def background_sync_worker(record_id: UUID, action: str) -> None:
             sheets_service = GoogleSheetsService(repo)
 
             record = await repo.get_by_id(record_id)
-            if record:
-                # We need to manually check if configured as we don't have settings here easily
-                # or assume Service handles it. GoogleSheetsService checks settings internally.
-                if sheets_service.is_configured():
-                    await sheets_service.auto_sync_record(record, action)
+            # GoogleSheetsService.is_configured() reads settings internally;
+            # we only auto-sync when both a record exists and sync is enabled.
+            if record and sheets_service.is_configured():
+                await sheets_service.auto_sync_record(record, action)
 
         except Exception as e:
             logger.error(
-                "background_sync_failed",
-                record_id=str(record_id),
-                action=action,
-                error=str(e)
+                "background_sync_failed", record_id=str(record_id), action=action, error=str(e)
             )
 
 
@@ -90,20 +86,16 @@ async def background_export_sync_worker(record_ids: list[str]) -> None:
                     logger.warning(
                         "background_export_sync_record_failed",
                         record_id=record_id_str,
-                        error=str(e)
+                        error=str(e),
                     )
 
-            logger.info(
-                "background_export_sync_completed",
-                record_count=len(record_ids)
-            )
+            logger.info("background_export_sync_completed", record_count=len(record_ids))
 
         except Exception as e:
             logger.error(
-                "background_export_sync_failed",
-                record_count=len(record_ids),
-                error=str(e)
+                "background_export_sync_failed", record_count=len(record_ids), error=str(e)
             )
+
 
 logger = get_logger(__name__)
 
@@ -186,16 +178,8 @@ class RecordService:
                 await self.repository.commit()
 
                 # Run in background with FRESH session (pass ID, not object)
-                background_tasks.add_task(
-                    background_sync_worker,
-                    record.id,
-                    action
-                )
-                logger.debug(
-                    "auto_sync_queued_background",
-                    record_id=str(record.id),
-                    action=action
-                )
+                background_tasks.add_task(background_sync_worker, record.id, action)
+                logger.debug("auto_sync_queued_background", record_id=str(record.id), action=action)
             else:
                 # Run immediately (waiting)
                 try:
@@ -545,7 +529,7 @@ class RecordService:
                     user_id,
                     notify=False,
                     background_tasks=background_tasks,
-                    skip_sync=True
+                    skip_sync=True,
                 )
                 approved.append(str(record.id))
             except Exception as e:
@@ -559,16 +543,12 @@ class RecordService:
 
         # Trigger single auto-sync for the batch if successes exist
         if approved and self._sheets_service:
-             # Use the first approved ID (or any) to trigger the worker
-             # The worker performs a full sync anyway
-             first_id = UUID(approved[0])
-             # We can reuse the background worker logic
-             if background_tasks:
-                 background_tasks.add_task(
-                     background_sync_worker,
-                     first_id,
-                     "batch_approved"
-                 )
+            # Use the first approved ID (or any) to trigger the worker
+            # The worker performs a full sync anyway
+            first_id = UUID(approved[0])
+            # We can reuse the background worker logic
+            if background_tasks:
+                background_tasks.add_task(background_sync_worker, first_id, "batch_approved")
 
         # Explicitly commit to ensure background worker sees the updates
         await self.repository.session.commit()
@@ -602,7 +582,7 @@ class RecordService:
                     user_id,
                     notify=False,
                     background_tasks=background_tasks,
-                    skip_sync=True
+                    skip_sync=True,
                 )
                 rejected.append(str(record.id))
             except Exception as e:
@@ -616,13 +596,9 @@ class RecordService:
 
         # Trigger single auto-sync for the batch
         if rejected and self._sheets_service:
-             first_id = UUID(rejected[0])
-             if background_tasks:
-                 background_tasks.add_task(
-                     background_sync_worker,
-                     first_id,
-                     "batch_rejected"
-                 )
+            first_id = UUID(rejected[0])
+            if background_tasks:
+                background_tasks.add_task(background_sync_worker, first_id, "batch_rejected")
 
         # Explicitly commit to ensure background worker sees the updates
         await self.repository.session.commit()

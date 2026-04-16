@@ -5,7 +5,7 @@ Handles both client inquiries and invoice notifications.
 """
 
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from email import message_from_string
 from email.message import Message
@@ -137,7 +137,7 @@ class EmailExtractor(BaseExtractor[EmailData]):
 
             if not date_sent:
                 warnings.append("Could not parse email date, using current time")
-                date_sent = datetime.utcnow()
+                date_sent = datetime.now(UTC).replace(tzinfo=None)
 
             # Determine email type
             email_type = self._classify_email(subject, body)
@@ -343,14 +343,14 @@ class EmailExtractor(BaseExtractor[EmailData]):
         return EmailType.CLIENT_INQUIRY
 
     def _extract_body_data(
-        self, body: str, email_type: EmailType
+        self, body: str, _email_type: EmailType
     ) -> dict[str, str | Decimal | None]:
         """
         Extract structured data from email body using patterns.
 
         Args:
             body: Email body text.
-            email_type: Type of email.
+            _email_type: Type of email (reserved for future per-type extraction).
 
         Returns:
             Dictionary of extracted field values.

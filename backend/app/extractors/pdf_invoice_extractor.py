@@ -5,7 +5,7 @@ Extracts invoice details, line items, and totals from PDF invoices.
 """
 
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
@@ -24,6 +24,7 @@ logger = get_logger(__name__)
 # Try to import pdfplumber, handle if not installed
 try:
     import pdfplumber
+
     PDF_SUPPORT = True
 except ImportError:
     pdfplumber = None  # type: ignore
@@ -40,7 +41,7 @@ class PDFInvoiceExtractor(BaseExtractor[InvoiceData]):
     - Client information (name, address, VAT number)
     - Line items (description, quantity, unit price, total)
     - Financial totals (net, VAT, total)
-    
+
     Uses pdfplumber for text extraction and table detection.
     """
 
@@ -92,11 +93,11 @@ class PDFInvoiceExtractor(BaseExtractor[InvoiceData]):
                 # Extract text from all pages
                 full_text = ""
                 tables: list[list[list[str]]] = []
-                
+
                 for page in pdf.pages:
                     page_text = page.extract_text() or ""
                     full_text += page_text + "\n"
-                    
+
                     # Extract tables from page
                     page_tables = page.extract_tables()
                     if page_tables:
@@ -118,7 +119,7 @@ class PDFInvoiceExtractor(BaseExtractor[InvoiceData]):
             invoice_date = self._extract_date(full_text)
             if not invoice_date:
                 warnings.append("Could not parse invoice date, using current time")
-                invoice_date = datetime.utcnow()
+                invoice_date = datetime.now(UTC).replace(tzinfo=None)
 
             # Extract client info
             client_info = self._extract_client_info(full_text)
@@ -247,9 +248,10 @@ class PDFInvoiceExtractor(BaseExtractor[InvoiceData]):
         is_valid = True
 
         # Check invoice number format (flexible for PDF)
-        if not re.match(r"^[A-Z]{2,3}-\d{4}-\d{3}$", data.invoice_number):
-            if not data.invoice_number.startswith("UNKNOWN"):
-                messages.append("Invoice number format not recognized")
+        if not re.match(
+            r"^[A-Z]{2,3}-\d{4}-\d{3}$", data.invoice_number
+        ) and not data.invoice_number.startswith("UNKNOWN"):
+            messages.append("Invoice number format not recognized")
 
         # Verify VAT calculation (24% standard Greek VAT)
         expected_vat = data.net_amount * Decimal("24") / Decimal("100")
@@ -351,9 +353,7 @@ class PDFInvoiceExtractor(BaseExtractor[InvoiceData]):
 
         return info
 
-    def _extract_line_items_from_tables(
-        self, tables: list[list[list[Any]]]
-    ) -> list[InvoiceItem]:
+    def _extract_line_items_from_tables(self, tables: list[list[list[Any]]]) -> list[InvoiceItem]:
         """Extract line items from PDF tables."""
         items: list[InvoiceItem] = []
 
@@ -364,8 +364,10 @@ class PDFInvoiceExtractor(BaseExtractor[InvoiceData]):
             # Check if this looks like an invoice items table
             header = table[0] if table else []
             header_text = " ".join(str(h or "") for h in header).lower()
-            
-            if not any(x in header_text for x in ["περιγραφή", "description", "ποσότητα", "quantity"]):
+
+            if not any(
+                x in header_text for x in ["περιγραφή", "description", "ποσότητα", "quantity"]
+            ):
                 continue
 
             # Process rows (skip header)
@@ -394,18 +396,18 @@ class PDFInvoiceExtractor(BaseExtractor[InvoiceData]):
     def _extract_line_items_from_text(self, text: str) -> list[InvoiceItem]:
         """Try to extract line items from plain text (fallback)."""
         items: list[InvoiceItem] = []
-        
+
         # Pattern for line items in text format
         # e.g., "Service Description    1    €500.00    €500.00"
         pattern = r"([A-Za-zΑ-Ωα-ω\s]+)\s+(\d+)\s+€?([\d,.]+)\s+€?([\d,.]+)"
-        
+
         for match in re.finditer(pattern, text):
             try:
                 description = match.group(1).strip()
                 quantity = int(match.group(2))
                 unit_price = self._parse_amount(match.group(3))
                 total = self._parse_amount(match.group(4))
-                
+
                 if description and len(description) > 3 and unit_price and total:
                     items.append(
                         InvoiceItem(
@@ -417,7 +419,7 @@ class PDFInvoiceExtractor(BaseExtractor[InvoiceData]):
                     )
             except (ValueError, InvalidOperation):
                 continue
-        
+
         return items
 
     def _extract_totals(self, text: str) -> dict[str, Decimal | None]:
@@ -531,9 +533,7 @@ class PDFInvoiceExtractor(BaseExtractor[InvoiceData]):
         except InvalidOperation:
             return None
 
-    def _calculate_confidence(
-        self, data: InvoiceData, warnings: list[str]
-    ) -> float:
+    def _calculate_confidence(self, data: InvoiceData, warnings: list[str]) -> float:
         """Calculate confidence score for PDF invoice extraction."""
         confidence = 0.9  # Start lower than HTML (PDF is less reliable)
 

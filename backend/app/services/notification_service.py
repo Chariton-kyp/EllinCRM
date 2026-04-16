@@ -56,9 +56,7 @@ class NotificationManager:
                 total_connections=len(self.active_connections),
             )
 
-    async def send_personal_message(
-        self, message: dict[str, Any], websocket: WebSocket
-    ) -> None:
+    async def send_personal_message(self, message: dict[str, Any], websocket: WebSocket) -> None:
         """
         Send a message to a specific WebSocket connection.
 
@@ -103,17 +101,19 @@ class NotificationManager:
             source_file: Source file name.
             record_type: Type of record (FORM, EMAIL, INVOICE).
         """
-        await self.broadcast({
-            "type": "record_created",
-            "id": str(uuid4()),
-            "timestamp": datetime.now(UTC).isoformat(),
-            "data": {
-                "record_id": record_id,
-                "source_file": source_file,
-                "record_type": record_type,
-            },
-            "message": f"New {record_type.lower()} extracted from {source_file}",
-        })
+        await self.broadcast(
+            {
+                "type": "record_created",
+                "id": str(uuid4()),
+                "timestamp": datetime.now(UTC).isoformat(),
+                "data": {
+                    "record_id": record_id,
+                    "source_file": source_file,
+                    "record_type": record_type,
+                },
+                "message": f"New {record_type.lower()} extracted from {source_file}",
+            }
+        )
 
     async def notify_record_approved(
         self, record_id: str, source_file: str, user_id: str | None = None
@@ -126,21 +126,21 @@ class NotificationManager:
             source_file: Source file name.
             user_id: User who approved (if available).
         """
-        await self.broadcast({
-            "type": "record_approved",
-            "id": str(uuid4()),
-            "timestamp": datetime.now(UTC).isoformat(),
-            "data": {
-                "record_id": record_id,
-                "source_file": source_file,
-                "user_id": user_id,
-            },
-            "message": f"Record approved: {source_file}",
-        })
+        await self.broadcast(
+            {
+                "type": "record_approved",
+                "id": str(uuid4()),
+                "timestamp": datetime.now(UTC).isoformat(),
+                "data": {
+                    "record_id": record_id,
+                    "source_file": source_file,
+                    "user_id": user_id,
+                },
+                "message": f"Record approved: {source_file}",
+            }
+        )
 
-    async def notify_record_rejected(
-        self, record_id: str, source_file: str, reason: str
-    ) -> None:
+    async def notify_record_rejected(self, record_id: str, source_file: str, reason: str) -> None:
         """
         Notify all clients that a record was rejected.
 
@@ -149,17 +149,19 @@ class NotificationManager:
             source_file: Source file name.
             reason: Rejection reason.
         """
-        await self.broadcast({
-            "type": "record_rejected",
-            "id": str(uuid4()),
-            "timestamp": datetime.now(UTC).isoformat(),
-            "data": {
-                "record_id": record_id,
-                "source_file": source_file,
-                "reason": reason,
-            },
-            "message": f"Record rejected: {source_file}",
-        })
+        await self.broadcast(
+            {
+                "type": "record_rejected",
+                "id": str(uuid4()),
+                "timestamp": datetime.now(UTC).isoformat(),
+                "data": {
+                    "record_id": record_id,
+                    "source_file": source_file,
+                    "reason": reason,
+                },
+                "message": f"Record rejected: {source_file}",
+            }
+        )
 
     async def notify_batch_operation(
         self, operation: str, count: int, record_type: str | None = None
@@ -172,21 +174,21 @@ class NotificationManager:
             count: Number of records affected.
             record_type: Type of records (optional).
         """
-        await self.broadcast({
-            "type": f"batch_{operation}",
-            "id": str(uuid4()),
-            "timestamp": datetime.now(UTC).isoformat(),
-            "data": {
-                "operation": operation,
-                "count": count,
-                "record_type": record_type,
-            },
-            "message": f"Batch {operation}: {count} records",
-        })
+        await self.broadcast(
+            {
+                "type": f"batch_{operation}",
+                "id": str(uuid4()),
+                "timestamp": datetime.now(UTC).isoformat(),
+                "data": {
+                    "operation": operation,
+                    "count": count,
+                    "record_type": record_type,
+                },
+                "message": f"Batch {operation}: {count} records",
+            }
+        )
 
-    async def notify_export_complete(
-        self, format: str, count: int, filename: str
-    ) -> None:
+    async def notify_export_complete(self, format: str, count: int, filename: str) -> None:
         """
         Notify all clients that an export was completed.
 
@@ -195,21 +197,21 @@ class NotificationManager:
             count: Number of records exported.
             filename: Generated filename.
         """
-        await self.broadcast({
-            "type": "export_complete",
-            "id": str(uuid4()),
-            "timestamp": datetime.now(UTC).isoformat(),
-            "data": {
-                "format": format,
-                "count": count,
-                "filename": filename,
-            },
-            "message": f"Export complete: {count} records to {format.upper()}",
-        })
+        await self.broadcast(
+            {
+                "type": "export_complete",
+                "id": str(uuid4()),
+                "timestamp": datetime.now(UTC).isoformat(),
+                "data": {
+                    "format": format,
+                    "count": count,
+                    "filename": filename,
+                },
+                "message": f"Export complete: {count} records to {format.upper()}",
+            }
+        )
 
-    async def notify_google_sheets_sync(
-        self, synced_count: int, spreadsheet_url: str
-    ) -> None:
+    async def notify_google_sheets_sync(self, synced_count: int, spreadsheet_url: str) -> None:
         """
         Notify all clients that Google Sheets sync completed.
 
@@ -217,16 +219,18 @@ class NotificationManager:
             synced_count: Number of records synced.
             spreadsheet_url: URL to the spreadsheet.
         """
-        await self.broadcast({
-            "type": "sheets_sync_complete",
-            "id": str(uuid4()),
-            "timestamp": datetime.now(UTC).isoformat(),
-            "data": {
-                "synced_count": synced_count,
-                "spreadsheet_url": spreadsheet_url,
-            },
-            "message": f"Google Sheets synced: {synced_count} records",
-        })
+        await self.broadcast(
+            {
+                "type": "sheets_sync_complete",
+                "id": str(uuid4()),
+                "timestamp": datetime.now(UTC).isoformat(),
+                "data": {
+                    "synced_count": synced_count,
+                    "spreadsheet_url": spreadsheet_url,
+                },
+                "message": f"Google Sheets synced: {synced_count} records",
+            }
+        )
 
     async def notify_error(self, error_type: str, message: str) -> None:
         """
@@ -236,15 +240,17 @@ class NotificationManager:
             error_type: Type of error.
             message: Error message.
         """
-        await self.broadcast({
-            "type": "error",
-            "id": str(uuid4()),
-            "timestamp": datetime.now(UTC).isoformat(),
-            "data": {
-                "error_type": error_type,
-            },
-            "message": message,
-        })
+        await self.broadcast(
+            {
+                "type": "error",
+                "id": str(uuid4()),
+                "timestamp": datetime.now(UTC).isoformat(),
+                "data": {
+                    "error_type": error_type,
+                },
+                "message": message,
+            }
+        )
 
 
 # Global notification manager instance

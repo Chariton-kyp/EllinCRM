@@ -46,9 +46,7 @@ class TestFormExtractor:
         finally:
             file_path.unlink()
 
-    def test_extract_from_real_form(
-        self, extractor: FormExtractor, forms_path: Path
-    ) -> None:
+    def test_extract_from_real_form(self, extractor: FormExtractor, forms_path: Path) -> None:
         """Test extraction from actual dummy data form."""
         form_file = forms_path / "contact_form_1.html"
         if not form_file.exists():
@@ -66,9 +64,7 @@ class TestFormExtractor:
         assert data.phone == "6945123456"
         assert data.company == "Ταβέρνα Ο Παράδεισος"
 
-    def test_extract_all_forms(
-        self, extractor: FormExtractor, forms_path: Path
-    ) -> None:
+    def test_extract_all_forms(self, extractor: FormExtractor, forms_path: Path) -> None:
         """Test extraction from all dummy data forms."""
         form_files = list(forms_path.glob("*.html"))
         if not form_files:

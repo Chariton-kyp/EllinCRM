@@ -71,24 +71,56 @@ HEADERS_ALL = [
 
 # Type-specific headers
 HEADERS_FORMS = [
-    "ID", "Source", "Date", "Status", "Confidence",
-    "Client_Name", "Email", "Phone", "Company",
-    "Service_Interest", "Priority", "Message",
-    "Reviewed_By", "Reviewed_At",
+    "ID",
+    "Source",
+    "Date",
+    "Status",
+    "Confidence",
+    "Client_Name",
+    "Email",
+    "Phone",
+    "Company",
+    "Service_Interest",
+    "Priority",
+    "Message",
+    "Reviewed_By",
+    "Reviewed_At",
 ]
 
 HEADERS_EMAILS = [
-    "ID", "Source", "Date", "Status", "Confidence",
-    "Sender_Name", "Sender_Email", "Phone", "Company",
-    "Service_Interest", "Email_Type", "Invoice_Number", "Amount",
-    "Subject", "Reviewed_By", "Reviewed_At",
+    "ID",
+    "Source",
+    "Date",
+    "Status",
+    "Confidence",
+    "Sender_Name",
+    "Sender_Email",
+    "Phone",
+    "Company",
+    "Service_Interest",
+    "Email_Type",
+    "Invoice_Number",
+    "Amount",
+    "Subject",
+    "Reviewed_By",
+    "Reviewed_At",
 ]
 
 HEADERS_INVOICES = [
-    "ID", "Source", "Date", "Status", "Confidence",
-    "Invoice_Number", "Client_Name", "Net_Amount", "VAT_Amount",
-    "Total_Amount", "Payment_Terms", "Notes",
-    "Reviewed_By", "Reviewed_At",
+    "ID",
+    "Source",
+    "Date",
+    "Status",
+    "Confidence",
+    "Invoice_Number",
+    "Client_Name",
+    "Net_Amount",
+    "VAT_Amount",
+    "Total_Amount",
+    "Payment_Terms",
+    "Notes",
+    "Reviewed_By",
+    "Reviewed_At",
 ]
 
 # Legacy single-sheet headers (for backward compatibility)
@@ -208,8 +240,7 @@ class GoogleSheetsService:
 
         # Determine if multi-sheet
         use_multi_sheet = (
-            multi_sheet if multi_sheet is not None
-            else settings.google_sheets_multi_sheet
+            multi_sheet if multi_sheet is not None else settings.google_sheets_multi_sheet
         )
 
         spreadsheet_id = None
@@ -223,15 +254,15 @@ class GoogleSheetsService:
                 file_metadata = {
                     "name": title,
                     "mimeType": "application/vnd.google-apps.spreadsheet",
-                    "parents": [settings.google_drive_folder_id]
+                    "parents": [settings.google_drive_folder_id],
                 }
                 # supportsAllDrives=True is required for Shared Drives
                 # This allows the file to be owned by the Shared Drive, not the service account
-                file = drive_service.files().create(
-                    body=file_metadata,
-                    fields="id, webViewLink",
-                    supportsAllDrives=True
-                ).execute()
+                file = (
+                    drive_service.files()
+                    .create(body=file_metadata, fields="id, webViewLink", supportsAllDrives=True)
+                    .execute()
+                )
                 spreadsheet_id = file.get("id")
                 spreadsheet_url = file.get("webViewLink")
 
@@ -243,48 +274,61 @@ class GoogleSheetsService:
                 # Multi-sheet structure
                 if use_multi_sheet:
                     # Rename default sheet to Summary
-                    reqs.append({
-                        "updateSheetProperties": {
-                            "properties": {
-                                "sheetId": 0,
-                                "title": SHEET_NAMES["summary"],
-                                "gridProperties": {"frozenRowCount": 0}
-                            },
-                            "fields": "title,gridProperties"
-                        }
-                    })
-                    # Add other sheets
-                    for i, name in enumerate([SHEET_NAMES["all"], SHEET_NAMES["forms"], SHEET_NAMES["emails"], SHEET_NAMES["invoices"]], start=1):
-                         reqs.append({
-                            "addSheet": {
+                    reqs.append(
+                        {
+                            "updateSheetProperties": {
                                 "properties": {
-                                    "sheetId": i,
-                                    "title": name,
-                                    "gridProperties": {"frozenRowCount": 1}
+                                    "sheetId": 0,
+                                    "title": SHEET_NAMES["summary"],
+                                    "gridProperties": {"frozenRowCount": 0},
+                                },
+                                "fields": "title,gridProperties",
+                            }
+                        }
+                    )
+                    # Add other sheets
+                    for i, name in enumerate(
+                        [
+                            SHEET_NAMES["all"],
+                            SHEET_NAMES["forms"],
+                            SHEET_NAMES["emails"],
+                            SHEET_NAMES["invoices"],
+                        ],
+                        start=1,
+                    ):
+                        reqs.append(
+                            {
+                                "addSheet": {
+                                    "properties": {
+                                        "sheetId": i,
+                                        "title": name,
+                                        "gridProperties": {"frozenRowCount": 1},
+                                    }
                                 }
                             }
-                        })
+                        )
                 else:
                     # Single sheet structure, rename Sheet1
-                    reqs.append({
-                        "updateSheetProperties": {
-                            "properties": {
-                                "sheetId": 0,
-                                "title": "Extraction Records",
-                                "gridProperties": {"frozenRowCount": 1}
-                            },
-                            "fields": "title,gridProperties"
+                    reqs.append(
+                        {
+                            "updateSheetProperties": {
+                                "properties": {
+                                    "sheetId": 0,
+                                    "title": "Extraction Records",
+                                    "gridProperties": {"frozenRowCount": 1},
+                                },
+                                "fields": "title,gridProperties",
+                            }
                         }
-                    })
+                    )
 
                 service.spreadsheets().batchUpdate(
-                    spreadsheetId=spreadsheet_id,
-                    body={"requests": reqs}
+                    spreadsheetId=spreadsheet_id, body={"requests": reqs}
                 ).execute()
 
             except HttpError as e:
                 # Re-raise to be caught by the outer block
-                 raise e
+                raise e
 
         # Strategy 2: Standard Sheets API Create (Fails if Quota exceeded)
         else:
@@ -366,7 +410,7 @@ class GoogleSheetsService:
                 spreadsheet_id=spreadsheet_id,
                 title=title,
                 multi_sheet=use_multi_sheet,
-                folder_id=settings.google_drive_folder_id
+                folder_id=settings.google_drive_folder_id,
             )
 
             return {
@@ -390,7 +434,7 @@ class GoogleSheetsService:
                     detail=(
                         "Permission denied or Storage Quota Exceeded. "
                         "Please configure 'GOOGLE_DRIVE_FOLDER_ID' in settings to use a shared folder."
-                    )
+                    ),
                 )
             raise
 
@@ -495,49 +539,55 @@ class GoogleSheetsService:
 
         # Format each sheet's header row
         sheet_configs = [
-            (1, len(HEADERS_ALL)),      # All Records
-            (2, len(HEADERS_FORMS)),    # Forms
-            (3, len(HEADERS_EMAILS)),   # Emails
-            (4, len(HEADERS_INVOICES)), # Invoices
+            (1, len(HEADERS_ALL)),  # All Records
+            (2, len(HEADERS_FORMS)),  # Forms
+            (3, len(HEADERS_EMAILS)),  # Emails
+            (4, len(HEADERS_INVOICES)),  # Invoices
         ]
 
         for sheet_id, col_count in sheet_configs:
-            requests.append({
-                "repeatCell": {
-                    "range": {
-                        "sheetId": sheet_id,
-                        "startRowIndex": 0,
-                        "endRowIndex": 1,
-                        "startColumnIndex": 0,
-                        "endColumnIndex": col_count,
-                    },
-                    "cell": {"userEnteredFormat": header_format},
-                    "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
-                }
-            })
-            requests.append({
-                "autoResizeDimensions": {
-                    "dimensions": {
-                        "sheetId": sheet_id,
-                        "dimension": "COLUMNS",
-                        "startIndex": 0,
-                        "endIndex": col_count,
+            requests.append(
+                {
+                    "repeatCell": {
+                        "range": {
+                            "sheetId": sheet_id,
+                            "startRowIndex": 0,
+                            "endRowIndex": 1,
+                            "startColumnIndex": 0,
+                            "endColumnIndex": col_count,
+                        },
+                        "cell": {"userEnteredFormat": header_format},
+                        "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
                     }
                 }
-            })
+            )
+            requests.append(
+                {
+                    "autoResizeDimensions": {
+                        "dimensions": {
+                            "sheetId": sheet_id,
+                            "dimension": "COLUMNS",
+                            "startIndex": 0,
+                            "endIndex": col_count,
+                        }
+                    }
+                }
+            )
 
         # Format Summary sheet title
-        requests.append({
-            "repeatCell": {
-                "range": {"sheetId": 0, "startRowIndex": 0, "endRowIndex": 1},
-                "cell": {
-                    "userEnteredFormat": {
-                        "textFormat": {"bold": True, "fontSize": 14},
-                    }
-                },
-                "fields": "userEnteredFormat(textFormat)",
+        requests.append(
+            {
+                "repeatCell": {
+                    "range": {"sheetId": 0, "startRowIndex": 0, "endRowIndex": 1},
+                    "cell": {
+                        "userEnteredFormat": {
+                            "textFormat": {"bold": True, "fontSize": 14},
+                        }
+                    },
+                    "fields": "userEnteredFormat(textFormat)",
+                }
             }
-        })
+        )
 
         service.spreadsheets().batchUpdate(
             spreadsheetId=spreadsheet_id,
@@ -567,7 +617,7 @@ class GoogleSheetsService:
         Returns:
             Dict with sync statistics.
         """
-        service = self._get_service()
+        self._get_service()
 
         # Get records to sync
         records = await self.repository.get_exportable_records(
@@ -582,8 +632,7 @@ class GoogleSheetsService:
             }
 
         use_multi_sheet = (
-            multi_sheet if multi_sheet is not None
-            else settings.google_sheets_multi_sheet
+            multi_sheet if multi_sheet is not None else settings.google_sheets_multi_sheet
         )
 
         if use_multi_sheet:
@@ -681,34 +730,42 @@ class GoogleSheetsService:
         # All Records sheet
         all_rows = [self._record_to_row(r) for r in records]
         if all_rows:
-            data.append({
-                "range": f"{SHEET_NAMES['all']}!A2",
-                "values": all_rows,
-            })
+            data.append(
+                {
+                    "range": f"{SHEET_NAMES['all']}!A2",
+                    "values": all_rows,
+                }
+            )
 
         # Forms sheet
         forms_rows = [self._record_to_form_row(r) for r in forms]
         if forms_rows:
-            data.append({
-                "range": f"{SHEET_NAMES['forms']}!A2",
-                "values": forms_rows,
-            })
+            data.append(
+                {
+                    "range": f"{SHEET_NAMES['forms']}!A2",
+                    "values": forms_rows,
+                }
+            )
 
         # Emails sheet
         emails_rows = [self._record_to_email_row(r) for r in emails]
         if emails_rows:
-            data.append({
-                "range": f"{SHEET_NAMES['emails']}!A2",
-                "values": emails_rows,
-            })
+            data.append(
+                {
+                    "range": f"{SHEET_NAMES['emails']}!A2",
+                    "values": emails_rows,
+                }
+            )
 
         # Invoices sheet
         invoices_rows = [self._record_to_invoice_row(r) for r in invoices]
         if invoices_rows:
-            data.append({
-                "range": f"{SHEET_NAMES['invoices']}!A2",
-                "values": invoices_rows,
-            })
+            data.append(
+                {
+                    "range": f"{SHEET_NAMES['invoices']}!A2",
+                    "values": invoices_rows,
+                }
+            )
 
         # Write all data
         if data:
@@ -718,9 +775,7 @@ class GoogleSheetsService:
             ).execute()
 
         # Update Summary sheet
-        await self._update_summary_sheet(
-            spreadsheet_id, records, forms, emails, invoices
-        )
+        await self._update_summary_sheet(spreadsheet_id, records, forms, emails, invoices)
 
         # Log the sync
         audit_logger.log_export(
@@ -766,10 +821,7 @@ class GoogleSheetsService:
         for r in records:
             status_counts[r.status] = status_counts.get(r.status, 0) + 1
 
-        total_amount = sum(
-            float(r.extracted_data.get("total_amount", 0) or 0)
-            for r in invoices
-        )
+        total_amount = sum(float(r.extracted_data.get("total_amount", 0) or 0) for r in invoices)
 
         now = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
@@ -791,11 +843,13 @@ class GoogleSheetsService:
             summary_data.append([status.capitalize(), count])
 
         if invoices:
-            summary_data.extend([
-                [""],
-                ["Financial Summary (Invoices)", ""],
-                ["Total Invoice Amount", f"€{total_amount:,.2f}"],
-            ])
+            summary_data.extend(
+                [
+                    [""],
+                    ["Financial Summary (Invoices)", ""],
+                    ["Total Invoice Amount", f"€{total_amount:,.2f}"],
+                ]
+            )
 
         # Write to Summary sheet
         service.spreadsheets().values().update(
@@ -891,56 +945,64 @@ class GoogleSheetsService:
 
         # Type-specific fields
         if record.record_type == "FORM":
-            row.extend([
-                data.get("full_name", ""),
-                data.get("email", ""),
-                data.get("phone", ""),
-                data.get("company", ""),
-                data.get("service_interest", ""),
-                "",  # Amount
-                "",  # VAT
-                "",  # Total
-                "",  # Invoice Number
-                data.get("priority", ""),
-                data.get("message", ""),
-            ])
+            row.extend(
+                [
+                    data.get("full_name", ""),
+                    data.get("email", ""),
+                    data.get("phone", ""),
+                    data.get("company", ""),
+                    data.get("service_interest", ""),
+                    "",  # Amount
+                    "",  # VAT
+                    "",  # Total
+                    "",  # Invoice Number
+                    data.get("priority", ""),
+                    data.get("message", ""),
+                ]
+            )
         elif record.record_type == "EMAIL":
-            row.extend([
-                data.get("sender_name", ""),
-                data.get("sender_email", ""),
-                data.get("phone", ""),
-                data.get("company", ""),
-                data.get("service_interest", ""),
-                data.get("invoice_amount", ""),
-                "",  # VAT
-                "",  # Total
-                data.get("invoice_number", ""),
-                "",  # Priority
-                self._truncate(data.get("body", ""), 500),
-            ])
+            row.extend(
+                [
+                    data.get("sender_name", ""),
+                    data.get("sender_email", ""),
+                    data.get("phone", ""),
+                    data.get("company", ""),
+                    data.get("service_interest", ""),
+                    data.get("invoice_amount", ""),
+                    "",  # VAT
+                    "",  # Total
+                    data.get("invoice_number", ""),
+                    "",  # Priority
+                    self._truncate(data.get("body", ""), 500),
+                ]
+            )
         elif record.record_type == "INVOICE":
-            row.extend([
-                data.get("client_name", ""),
-                "",  # Email
-                "",  # Phone
-                "",  # Company
-                "",  # Service Interest
-                data.get("net_amount", ""),
-                data.get("vat_amount", ""),
-                data.get("total_amount", ""),
-                data.get("invoice_number", ""),
-                "",  # Priority
-                data.get("notes", ""),
-            ])
+            row.extend(
+                [
+                    data.get("client_name", ""),
+                    "",  # Email
+                    "",  # Phone
+                    "",  # Company
+                    "",  # Service Interest
+                    data.get("net_amount", ""),
+                    data.get("vat_amount", ""),
+                    data.get("total_amount", ""),
+                    data.get("invoice_number", ""),
+                    "",  # Priority
+                    data.get("notes", ""),
+                ]
+            )
         else:
             row.extend([""] * 11)
 
         # Review info
-        row.extend([
-            record.reviewed_by or "",
-            record.reviewed_at.strftime("%Y-%m-%d %H:%M:%S") if record.reviewed_at else "",
-            record.updated_at.strftime("%Y-%m-%d %H:%M:%S") if record.updated_at else "",
-        ])
+        row.extend(
+            [
+                record.reviewed_by or "",
+                record.reviewed_at.strftime("%Y-%m-%d %H:%M:%S") if record.reviewed_at else "",
+                record.updated_at.strftime("%Y-%m-%d %H:%M:%S") if record.updated_at else "",
+            ]
+        )
 
         return row
 
@@ -985,6 +1047,7 @@ class GoogleSheetsService:
             # Perform full sync to maintain consistency
             # Use runtime settings to determine if rejected records should be included
             from app.core.runtime_settings import get_auto_sync_include_rejected
+
             include_rejected = get_auto_sync_include_rejected()
 
             result = await self.sync_records(
@@ -1033,7 +1096,7 @@ class GoogleSheetsService:
             return ""
         if len(text) <= max_length:
             return text
-        return text[:max_length - 3] + "..."
+        return text[: max_length - 3] + "..."
 
 
 class GoogleSheetsServiceFallback:
@@ -1084,7 +1147,9 @@ class GoogleSheetsServiceFallback:
         return None
 
 
-def get_google_sheets_service(repository: RecordRepository) -> GoogleSheetsService | GoogleSheetsServiceFallback:
+def get_google_sheets_service(
+    repository: RecordRepository,
+) -> GoogleSheetsService | GoogleSheetsServiceFallback:
     """
     Factory function to get the appropriate Google Sheets service.
 

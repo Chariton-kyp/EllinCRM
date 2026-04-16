@@ -85,10 +85,7 @@ class TestTokenizeForSearch:
 
     def test_tokenize_with_stopwords_removal(self) -> None:
         """Test stopword removal."""
-        result = tokenize_for_search(
-            "ο Κώστας και η Μαρία",
-            remove_stopwords=True
-        )
+        result = tokenize_for_search("ο Κώστας και η Μαρία", remove_stopwords=True)
         # "ο", "και", "η" should be removed
         assert "ο" not in result
         assert "και" not in result
@@ -99,11 +96,7 @@ class TestTokenizeForSearch:
 
     def test_tokenize_without_stopwords_removal(self) -> None:
         """Test that stopwords are kept when not removing."""
-        result = tokenize_for_search(
-            "και είναι",
-            remove_stopwords=False,
-            min_token_length=2
-        )
+        result = tokenize_for_search("και είναι", remove_stopwords=False, min_token_length=2)
         assert "και" in result
         assert "ειναι" in result
 

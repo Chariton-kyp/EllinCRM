@@ -30,7 +30,7 @@ import asyncio
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
@@ -42,12 +42,14 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
-class ModelStatus(str, Enum):
+class ModelStatus(StrEnum):
     """Status of the embedding model loading."""
+
     NOT_STARTED = "not_started"
     LOADING = "loading"
     READY = "ready"
     FAILED = "failed"
+
 
 # Primary model: Qwen3-Embedding 0.6B (Phase 2B, April 2026)
 # - Native 1024-dim, truncated to 768 via Matryoshka (truncate_dim=768)
@@ -253,7 +255,7 @@ class EmbeddingService:
             RuntimeError: If all models fail to load.
         """
         # Set HuggingFace token if available (needed for the legacy gated model)
-        hf_token = settings.huggingface_token
+        hf_token = settings.huggingface_token_value
         if hf_token:
             os.environ["HF_TOKEN"] = hf_token
             os.environ["HUGGING_FACE_HUB_TOKEN"] = hf_token
@@ -391,7 +393,7 @@ class EmbeddingService:
 
         # Build result with zero vectors for empty texts
         result = [[0.0] * self._dimension for _ in texts]
-        for idx, embedding in zip(valid_indices, embeddings):
+        for idx, embedding in zip(valid_indices, embeddings, strict=False):
             result[idx] = embedding.tolist()
 
         return result
@@ -422,9 +424,7 @@ class EmbeddingService:
             None, lambda: self.generate_embeddings_batch(texts, batch_size)
         )
 
-    def compute_similarity(
-        self, embedding1: list[float], embedding2: list[float]
-    ) -> float:
+    def compute_similarity(self, embedding1: list[float], embedding2: list[float]) -> float:
         """
         Compute cosine similarity between two embeddings.
 
@@ -499,9 +499,7 @@ def get_embedding_status() -> dict[str, Any]:
     return service.get_status_info()
 
 
-def extract_text_for_embedding(
-    record_type: str, data: dict[str, Any]
-) -> str:
+def extract_text_for_embedding(record_type: str, data: dict[str, Any]) -> str:
     """
     Extract searchable text from a record for embedding.
 
@@ -560,9 +558,7 @@ def extract_text_for_embedding(
             items = data["items"]
             if isinstance(items, list):
                 descriptions = [
-                    item.get("description", "")
-                    for item in items
-                    if isinstance(item, dict)
+                    item.get("description", "") for item in items if isinstance(item, dict)
                 ]
                 if descriptions:
                     parts.append(f"Items: {', '.join(descriptions)}")

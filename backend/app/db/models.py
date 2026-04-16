@@ -67,9 +67,7 @@ class ExtractionRecordDB(Base):
 
     # Review Information
     reviewed_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    reviewed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     review_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -92,12 +90,8 @@ class ExtractionRecordDB(Base):
             "status IN ('pending', 'approved', 'rejected', 'edited', 'exported')",
             name="valid_status",
         ),
-        CheckConstraint(
-            "record_type IN ('FORM', 'EMAIL', 'INVOICE')", name="valid_record_type"
-        ),
-        CheckConstraint(
-            "confidence_score >= 0 AND confidence_score <= 1", name="valid_confidence"
-        ),
+        CheckConstraint("record_type IN ('FORM', 'EMAIL', 'INVOICE')", name="valid_record_type"),
+        CheckConstraint("confidence_score >= 0 AND confidence_score <= 1", name="valid_confidence"),
         Index("idx_records_status", "status"),
         Index("idx_records_record_type", "record_type"),
         Index("idx_records_created_at", "created_at", postgresql_using="btree"),
@@ -224,9 +218,7 @@ class AuditLogDB(Base):
     #          record_approved, record_rejected, record_edited, data_export
 
     # Related Record (optional - some actions like export may not have a single record)
-    record_id: Mapped[uuid.UUID | None] = mapped_column(
-        PGUUID(as_uuid=True), nullable=True
-    )
+    record_id: Mapped[uuid.UUID | None] = mapped_column(PGUUID(as_uuid=True), nullable=True)
 
     # User Information
     user_id: Mapped[str | None] = mapped_column(String(100), nullable=True)

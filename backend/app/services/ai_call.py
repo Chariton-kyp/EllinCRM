@@ -20,8 +20,11 @@ from app.ai.ai_router import get_ai_router
 try:
     from any_llm.exceptions import (  # type: ignore[import]
         AuthenticationError as _AnyLLMAuthenticationError,
+    )
+    from any_llm.exceptions import (
         RateLimitError as _AnyLLMRateLimitError,
     )
+
     _ANY_LLM_EXCEPTIONS = True
 except ImportError:
     _ANY_LLM_EXCEPTIONS = False

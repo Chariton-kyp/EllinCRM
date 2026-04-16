@@ -37,15 +37,16 @@ import uuid
 from collections.abc import AsyncGenerator
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, status
+from fastapi import APIRouter, HTTPException, status
+from fastapi import Request as FastAPIRequest
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.ai.chat_agent import get_chat_agent
-from app.core.rate_limit import limiter
 from app.ai.chat_tools import TOOL_DISPLAY_NAMES_EL
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.core.rate_limit import limiter
 from app.db.database import get_db  # noqa: F401 — kept for legacy imports
 
 logger = get_logger(__name__)
@@ -68,9 +69,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     """Chat request with conversation history and optional thread ID."""
 
-    messages: list[ChatMessage] = Field(
-        ..., min_length=1, description="Conversation messages"
-    )
+    messages: list[ChatMessage] = Field(..., min_length=1, description="Conversation messages")
     stream: bool = Field(default=True, description="Enable SSE streaming")
     thread_id: str | None = Field(
         default=None,
@@ -87,7 +86,9 @@ class ChatResponseSync(BaseModel):
     content: str
     sources: list[dict[str, Any]]
     thread_id: str
-    tools_called: list[str] = Field(default_factory=list, description="Tool names invoked by the agent")
+    tools_called: list[str] = Field(
+        default_factory=list, description="Tool names invoked by the agent"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -146,9 +147,9 @@ def _build_tool_result_summary_el(name: str, result: Any) -> str:
             metric = result.get("metric", "")
             currency = result.get("currency", "")
             if value is not None:
-                fmt_value = f"{float(value):,.2f}".replace(",", "X").replace(
-                    ".", ","
-                ).replace("X", ".")
+                fmt_value = (
+                    f"{float(value):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                )
                 return f"{metric} = {fmt_value} {currency}".strip()
         elif name == "group_by_dimension" and isinstance(result, list):
             return f"{len(result)} ομάδες"
@@ -232,7 +233,7 @@ async def chat(request: FastAPIRequest, body: ChatRequest):
             detail="Last message must be from user.",
         )
 
-    if not settings.anthropic_api_key:
+    if not settings.anthropic_api_key_value:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI service unavailable. ANTHROPIC_API_KEY not configured.",

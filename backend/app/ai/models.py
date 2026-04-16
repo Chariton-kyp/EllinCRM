@@ -60,20 +60,14 @@ class DocumentEmbeddingDB(Base):
     content_text: Mapped[str] = mapped_column(Text, nullable=False)
 
     # The embedding vector (pgvector) - for semantic search
-    embedding: Mapped[list[float]] = mapped_column(
-        Vector(EMBEDDING_DIMENSION), nullable=False
-    )
+    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENSION), nullable=False)
 
     # Greek-normalized text (accent-free lowercase) - for keyword search
     # "Δικηγορικό Γραφείο" → "δικηγορικο γραφειο"
-    content_normalized: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
+    content_normalized: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Full-text search vector - for tsvector/tsquery keyword matching
-    search_vector: Mapped[str | None] = mapped_column(
-        TSVECTOR, nullable=True
-    )
+    search_vector: Mapped[str | None] = mapped_column(TSVECTOR, nullable=True)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
