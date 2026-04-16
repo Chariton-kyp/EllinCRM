@@ -8,6 +8,7 @@ Supports multi-sheet Excel export with proper formatting for:
 - Invoices data
 """
 
+import contextlib
 import csv
 import io
 import json
@@ -27,16 +28,38 @@ logger = get_logger(__name__)
 
 # Column definitions per record type
 FORM_COLUMNS = [
-    "Client_Name", "Email", "Phone", "Company",
-    "Service_Interest", "Priority", "Message", "Date", "Status", "Confidence"
+    "Client_Name",
+    "Email",
+    "Phone",
+    "Company",
+    "Service_Interest",
+    "Priority",
+    "Message",
+    "Date",
+    "Status",
+    "Confidence",
 ]
 EMAIL_COLUMNS = [
-    "Client_Name", "Email", "Company", "Service_Interest",
-    "Invoice_Number", "Amount", "Message", "Date", "Status", "Confidence"
+    "Client_Name",
+    "Email",
+    "Company",
+    "Service_Interest",
+    "Invoice_Number",
+    "Amount",
+    "Message",
+    "Date",
+    "Status",
+    "Confidence",
 ]
 INVOICE_COLUMNS = [
-    "Invoice_Number", "Client_Name", "Amount", "VAT",
-    "Total_Amount", "Date", "Status", "Confidence"
+    "Invoice_Number",
+    "Client_Name",
+    "Amount",
+    "VAT",
+    "Total_Amount",
+    "Date",
+    "Status",
+    "Confidence",
 ]
 
 
@@ -59,9 +82,7 @@ class ExportService:
         """
         self.repository = repository
 
-    async def export_records(
-        self, request: ExportRequest
-    ) -> tuple[bytes, str, str, list[str]]:
+    async def export_records(self, request: ExportRequest) -> tuple[bytes, str, str, list[str]]:
         """
         Export records to the requested format.
 
@@ -95,9 +116,7 @@ class ExportService:
             content_type = "text/csv; charset=utf-8"
         elif request.format == "xlsx":
             content, filename = self._export_xlsx(data, timestamp)
-            content_type = (
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         elif request.format == "json":
             content, filename = self._export_json(data, timestamp)
             content_type = "application/json; charset=utf-8"
@@ -222,9 +241,7 @@ class ExportService:
             return text
         return text[: max_length - 3] + "..."
 
-    def _export_csv(
-        self, data: list[dict[str, Any]], timestamp: str
-    ) -> tuple[bytes, str]:
+    def _export_csv(self, data: list[dict[str, Any]], timestamp: str) -> tuple[bytes, str]:
         """
         Export data to CSV format.
 
@@ -258,19 +275,15 @@ class ExportService:
                 "Message",
             ]
 
-            writer = csv.DictWriter(
-                output, fieldnames=fieldnames, extrasaction="ignore"
-            )
+            writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
             writer.writeheader()
             writer.writerows(data)
 
         # Add UTF-8 BOM for Excel compatibility with Greek characters
-        csv_bytes = b'\xef\xbb\xbf' + output.getvalue().encode("utf-8")
+        csv_bytes = b"\xef\xbb\xbf" + output.getvalue().encode("utf-8")
         return csv_bytes, f"ellincrm_export_{timestamp}.csv"
 
-    def _export_xlsx(
-        self, data: list[dict[str, Any]], timestamp: str
-    ) -> tuple[bytes, str]:
+    def _export_xlsx(self, data: list[dict[str, Any]], timestamp: str) -> tuple[bytes, str]:
         """
         Export data to Excel format with multi-sheet organization.
 
@@ -322,30 +335,59 @@ class ExportService:
         ws_summary = wb.active
         ws_summary.title = "Summary"
         self._create_summary_sheet(
-            ws_summary, data, forms_data, emails_data, invoices_data,
-            title_font, subtitle_font, header_font, header_fill, thin_border
+            ws_summary,
+            data,
+            forms_data,
+            emails_data,
+            invoices_data,
+            title_font,
+            subtitle_font,
+            header_font,
+            header_fill,
+            thin_border,
         )
 
         # 2. Forms Sheet
         ws_forms = wb.create_sheet("Forms")
         self._create_data_sheet(
-            ws_forms, forms_data, FORM_COLUMNS, "Contact Forms",
-            header_font, header_fill, header_alignment, status_fills, thin_border
+            ws_forms,
+            forms_data,
+            FORM_COLUMNS,
+            "Contact Forms",
+            header_font,
+            header_fill,
+            header_alignment,
+            status_fills,
+            thin_border,
         )
 
         # 3. Emails Sheet
         ws_emails = wb.create_sheet("Emails")
         self._create_data_sheet(
-            ws_emails, emails_data, EMAIL_COLUMNS, "Email Extractions",
-            header_font, header_fill, header_alignment, status_fills, thin_border
+            ws_emails,
+            emails_data,
+            EMAIL_COLUMNS,
+            "Email Extractions",
+            header_font,
+            header_fill,
+            header_alignment,
+            status_fills,
+            thin_border,
         )
 
         # 4. Invoices Sheet
         ws_invoices = wb.create_sheet("Invoices")
         self._create_data_sheet(
-            ws_invoices, invoices_data, INVOICE_COLUMNS, "Invoices",
-            header_font, header_fill, header_alignment, status_fills, thin_border,
-            currency_columns=["Amount", "VAT", "Total_Amount"]
+            ws_invoices,
+            invoices_data,
+            INVOICE_COLUMNS,
+            "Invoices",
+            header_font,
+            header_fill,
+            header_alignment,
+            status_fills,
+            thin_border,
+            currency_columns=["Amount", "VAT", "Total_Amount"],
         )
 
         output = io.BytesIO()
@@ -414,15 +456,9 @@ class ExportService:
             ws[f"A{row + 1}"] = "Financial Summary (Invoices)"
             ws[f"A{row + 1}"].font = subtitle_font
 
-            total_amount = sum(
-                float(r.get("Amount") or 0) for r in invoices_data
-            )
-            total_vat = sum(
-                float(r.get("VAT") or 0) for r in invoices_data
-            )
-            total_with_vat = sum(
-                float(r.get("Total_Amount") or 0) for r in invoices_data
-            )
+            total_amount = sum(float(r.get("Amount") or 0) for r in invoices_data)
+            total_vat = sum(float(r.get("VAT") or 0) for r in invoices_data)
+            total_with_vat = sum(float(r.get("Total_Amount") or 0) for r in invoices_data)
 
             financial_data = [
                 ("Net Amount", f"€{total_amount:,.2f}"),
@@ -478,10 +514,8 @@ class ExportService:
 
                 # Format currency values
                 if col_name in currency_columns and value is not None:
-                    try:
+                    with contextlib.suppress(ValueError, TypeError):
                         value = f"€{float(value):,.2f}"
-                    except (ValueError, TypeError):
-                        pass
 
                 # Truncate long messages
                 if col_name == "Message" and value and len(str(value)) > 100:
@@ -499,10 +533,20 @@ class ExportService:
 
         # Auto-fit column widths (approximate)
         column_widths = {
-            "Client_Name": 20, "Email": 25, "Phone": 15, "Company": 20,
-            "Service_Interest": 18, "Priority": 10, "Message": 40,
-            "Date": 18, "Status": 12, "Confidence": 12,
-            "Invoice_Number": 15, "Amount": 12, "VAT": 12, "Total_Amount": 14,
+            "Client_Name": 20,
+            "Email": 25,
+            "Phone": 15,
+            "Company": 20,
+            "Service_Interest": 18,
+            "Priority": 10,
+            "Message": 40,
+            "Date": 18,
+            "Status": 12,
+            "Confidence": 12,
+            "Invoice_Number": 15,
+            "Amount": 12,
+            "VAT": 12,
+            "Total_Amount": 14,
         }
         for col_idx, col_name in enumerate(columns, start=1):
             width = column_widths.get(col_name, 15)
@@ -511,9 +555,7 @@ class ExportService:
         # Freeze header row
         ws.freeze_panes = "A2"
 
-    def _export_json(
-        self, data: list[dict[str, Any]], timestamp: str
-    ) -> tuple[bytes, str]:
+    def _export_json(self, data: list[dict[str, Any]], timestamp: str) -> tuple[bytes, str]:
         """
         Export data to JSON format.
 

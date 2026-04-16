@@ -160,9 +160,7 @@ async def count_records(
     Returns:
         {"count": int, "filters_applied": str (Greek summary)}
     """
-    where_sql, params = _build_where_clause(
-        record_type, status, date_from, date_to, customer_vat
-    )
+    where_sql, params = _build_where_clause(record_type, status, date_from, date_to, customer_vat)
     sql = text(f"SELECT COUNT(*) AS n FROM extraction_records WHERE {where_sql}")
 
     async with get_readonly_session() as session:
@@ -170,9 +168,7 @@ async def count_records(
         row = result.one()
         count_val = int(row.n)
 
-    filters_summary = _format_filters_summary(
-        record_type, status, date_from, date_to, customer_vat
-    )
+    filters_summary = _format_filters_summary(record_type, status, date_from, date_to, customer_vat)
     logger.info(
         "chat_tool_count_records",
         count=count_val,
@@ -223,13 +219,27 @@ async def aggregate_invoice_field(
     # Direct callers (tests, future code) may bypass LangChain's schema check.
     ALLOWED_FIELDS = {"total_amount", "net_amount", "vat_amount"}
     if field not in ALLOWED_FIELDS:
-        return {"error": "invalid_field", "field": field, "value": None, "count": 0,
-                "metric": metric, "currency": "EUR", "filters_applied": ""}
+        return {
+            "error": "invalid_field",
+            "field": field,
+            "value": None,
+            "count": 0,
+            "metric": metric,
+            "currency": "EUR",
+            "filters_applied": "",
+        }
 
     agg_fn_map = {"sum": "SUM", "avg": "AVG", "min": "MIN", "max": "MAX"}
     if metric not in agg_fn_map:
-        return {"error": "invalid_metric", "field": field, "value": None, "count": 0,
-                "metric": metric, "currency": "EUR", "filters_applied": ""}
+        return {
+            "error": "invalid_metric",
+            "field": field,
+            "value": None,
+            "count": 0,
+            "metric": metric,
+            "currency": "EUR",
+            "filters_applied": "",
+        }
     agg_fn = agg_fn_map[metric]
 
     # Always filter to invoices for this tool
@@ -269,9 +279,7 @@ async def aggregate_invoice_field(
         value = _coerce_decimal(row.agg_value)
         count_val = int(row.n)
 
-    filters_summary = _format_filters_summary(
-        "INVOICE", status, date_from, date_to, customer_vat
-    )
+    filters_summary = _format_filters_summary("INVOICE", status, date_from, date_to, customer_vat)
     logger.info(
         "chat_tool_aggregate_invoice_field",
         field=field,
@@ -331,22 +339,20 @@ async def group_by_dimension(
         key_expr = "status"
         label_expr = "status"
         group_expr = "status"
-        extra_select = ""
     elif dimension == "record_type":
         key_expr = "record_type"
         label_expr = "record_type"
         group_expr = "record_type"
-        extra_select = ""
     elif dimension == "month":
         key_expr = "to_char(date_trunc('month', created_at), 'YYYY-MM')"
         label_expr = key_expr
         group_expr = "date_trunc('month', created_at)"
-        extra_select = ""
     elif dimension == "client_vat":
         key_expr = "extracted_data->>'client_vat_number'"
-        label_expr = "COALESCE(extracted_data->>'client_name', extracted_data->>'client_vat_number')"
+        label_expr = (
+            "COALESCE(extracted_data->>'client_name', extracted_data->>'client_vat_number')"
+        )
         group_expr = "extracted_data->>'client_vat_number', extracted_data->>'client_name'"
-        extra_select = ""
     else:
         # Literal enforces this, but keep a safety branch
         return []
@@ -356,14 +362,10 @@ async def group_by_dimension(
         agg_expr = "COUNT(*) AS metric_value"
         order_expr = "COUNT(*) DESC"
     elif metric == "sum_total_amount":
-        agg_expr = (
-            "SUM(NULLIF(regexp_replace(extracted_data->>'total_amount', '[^0-9.\\-]', '', 'g'), '')::NUMERIC) AS metric_value"
-        )
+        agg_expr = "SUM(NULLIF(regexp_replace(extracted_data->>'total_amount', '[^0-9.\\-]', '', 'g'), '')::NUMERIC) AS metric_value"
         order_expr = "metric_value DESC NULLS LAST"
     elif metric == "avg_total_amount":
-        agg_expr = (
-            "AVG(NULLIF(regexp_replace(extracted_data->>'total_amount', '[^0-9.\\-]', '', 'g'), '')::NUMERIC) AS metric_value"
-        )
+        agg_expr = "AVG(NULLIF(regexp_replace(extracted_data->>'total_amount', '[^0-9.\\-]', '', 'g'), '')::NUMERIC) AS metric_value"
         order_expr = "metric_value DESC NULLS LAST"
     else:
         return []
@@ -385,7 +387,7 @@ async def group_by_dimension(
             {key_expr} AS group_key,
             {label_expr} AS group_label,
             COUNT(*) AS count,
-            {agg_expr if metric != 'count' else 'NULL AS metric_value'}
+            {agg_expr if metric != "count" else "NULL AS metric_value"}
         FROM extraction_records
         WHERE {where_sql}
         GROUP BY {group_expr}
@@ -499,9 +501,7 @@ async def search_records(
                 "FROM extraction_records "
                 "WHERE id::text = ANY(:ids)"
             )
-            enrich_rows = (
-                await session.execute(enrich_sql, {"ids": record_ids})
-            ).all()
+            enrich_rows = (await session.execute(enrich_sql, {"ids": record_ids})).all()
             enrichment = {
                 str(row.id): {
                     "source_file": row.source_file,
@@ -607,7 +607,9 @@ async def get_record(
         source_file=source_file,
         found=len(records),
     )
-    return records if source_file is not None else (records[0] if records else {"error": "not_found"})
+    return (
+        records if source_file is not None else (records[0] if records else {"error": "not_found"})
+    )
 
 
 def _row_to_dict(row: Any) -> dict[str, Any]:

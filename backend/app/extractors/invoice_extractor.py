@@ -5,7 +5,7 @@ Extracts invoice details, line items, and totals.
 """
 
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
@@ -63,7 +63,7 @@ class InvoiceExtractor(BaseExtractor[InvoiceData]):
             invoice_date = self._extract_date(soup)
             if not invoice_date:
                 warnings.append("Could not parse invoice date, using current time")
-                invoice_date = datetime.utcnow()
+                invoice_date = datetime.now(UTC).replace(tzinfo=None)
 
             # Extract client info
             client_info = self._extract_client_info(soup)
@@ -217,9 +217,7 @@ class InvoiceExtractor(BaseExtractor[InvoiceData]):
 
         return is_valid, messages
 
-    def _extract_invoice_number(
-        self, soup: BeautifulSoup, filename: str
-    ) -> str | None:
+    def _extract_invoice_number(self, soup: BeautifulSoup, filename: str) -> str | None:
         """Extract invoice number from HTML."""
         # Try to find in text content
         text = soup.get_text()
@@ -295,7 +293,7 @@ class InvoiceExtractor(BaseExtractor[InvoiceData]):
                 if parent:
                     # Get the next few lines
                     next_text = parent.get_text()
-                    lines = [l.strip() for l in next_text.split("\n") if l.strip()]
+                    lines = [line.strip() for line in next_text.split("\n") if line.strip()]
                     for line in lines[1:3]:  # Check next 2 lines
                         if line and not line.startswith(("ΑΦΜ", "Βας.", "Λεωφ.")):
                             info["name"] = line
@@ -494,9 +492,7 @@ class InvoiceExtractor(BaseExtractor[InvoiceData]):
         except InvalidOperation:
             return None
 
-    def _calculate_confidence(
-        self, data: InvoiceData, warnings: list[str]
-    ) -> float:
+    def _calculate_confidence(self, data: InvoiceData, warnings: list[str]) -> float:
         """
         Calculate confidence score for invoice extraction.
 

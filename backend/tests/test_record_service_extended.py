@@ -81,9 +81,7 @@ class TestApproveWithNotifications:
     """Test approve with notification handling."""
 
     @pytest.mark.anyio
-    async def test_approve_with_notify_false(
-        self, record_service, mock_repository, sample_record
-    ):
+    async def test_approve_with_notify_false(self, record_service, mock_repository, sample_record):
         """Test approve without sending notification."""
         mock_repository.get_by_id.return_value = sample_record
         mock_repository.update.return_value = sample_record
@@ -106,9 +104,7 @@ class TestRejectWithNotifications:
     """Test reject with notification handling."""
 
     @pytest.mark.anyio
-    async def test_reject_with_notify_false(
-        self, record_service, mock_repository, sample_record
-    ):
+    async def test_reject_with_notify_false(self, record_service, mock_repository, sample_record):
         """Test reject without sending notification."""
         mock_repository.get_by_id.return_value = sample_record
         mock_repository.update.return_value = sample_record
@@ -131,9 +127,7 @@ class TestBatchOperationsExtended:
     """Extended tests for batch operations."""
 
     @pytest.mark.anyio
-    async def test_approve_batch_with_errors(
-        self, record_service, mock_repository, sample_record
-    ):
+    async def test_approve_batch_with_errors(self, record_service, mock_repository, sample_record):
         """Test batch approve handling errors."""
         # First call succeeds, second fails
         mock_repository.get_by_id.side_effect = [
@@ -157,9 +151,7 @@ class TestBatchOperationsExtended:
             assert result["error_count"] == 1
 
     @pytest.mark.anyio
-    async def test_reject_batch_with_errors(
-        self, record_service, mock_repository, sample_record
-    ):
+    async def test_reject_batch_with_errors(self, record_service, mock_repository, sample_record):
         """Test batch reject handling errors."""
         mock_repository.get_by_id.side_effect = [
             sample_record,
@@ -186,9 +178,7 @@ class TestCreateFromExtraction:
     """Tests for create_from_extraction method."""
 
     @pytest.mark.anyio
-    async def test_create_from_extraction_basic(
-        self, record_service, mock_repository
-    ):
+    async def test_create_from_extraction_basic(self, record_service, mock_repository):
         """Test basic record creation from extraction."""
         form_data = ContactFormData(
             full_name="Test User",
@@ -228,9 +218,7 @@ class TestCreateFromExtraction:
             mock_repository.create.assert_called_once()
 
     @pytest.mark.anyio
-    async def test_create_from_extraction_with_embedding(
-        self, record_service, mock_repository
-    ):
+    async def test_create_from_extraction_with_embedding(self, record_service, mock_repository):
         """Test record creation with embedding generation."""
         form_data = ContactFormData(
             full_name="Test",
@@ -274,9 +262,7 @@ class TestCreateFromExtraction:
             mock_similarity.create_embedding.assert_called_once()
 
     @pytest.mark.anyio
-    async def test_create_from_extraction_embedding_fails(
-        self, record_service, mock_repository
-    ):
+    async def test_create_from_extraction_embedding_fails(self, record_service, mock_repository):
         """Test record creation when embedding fails (should not fail creation)."""
         form_data = ContactFormData(
             full_name="Test",

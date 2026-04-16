@@ -1,0 +1,49 @@
+name: Feature request
+description: Suggest a capability, improvement, or follow-up for EllinCRM.
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. Please keep the scope focused — one request per issue.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use-case
+      description: What are you trying to do that is currently hard, impossible, or clunky?
+      placeholder: "When I upload a scanned receipt (JPG), the extractor silently skips it because only PDF/HTML are supported."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: A rough sketch of what you'd like to see. Don't worry about implementation details.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches, tools, or workarounds you've tried or considered.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope hint
+      options:
+        - Backend (FastAPI, extractors, services)
+        - Frontend (Next.js, UI components)
+        - AI / RAG / chat agent
+        - Docs / developer experience
+        - CI / tooling
+        - Other
+      default: 0
+    validations:
+      required: true

@@ -251,9 +251,7 @@ class TestRecordRepository:
         mock_result.scalars.return_value = mock_scalars
         mock_session.execute.return_value = mock_result
 
-        records = await repository.get_exportable_records(
-            record_ids=[sample_record.id]
-        )
+        records = await repository.get_exportable_records(record_ids=[sample_record.id])
 
         assert len(records) == 1
 

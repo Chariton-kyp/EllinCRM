@@ -86,7 +86,8 @@ def get_runtime_settings_status() -> dict[str, Any]:
     return {
         "auto_sync_include_rejected": get_auto_sync_include_rejected(),
         "auto_sync_include_rejected_source": (
-            "runtime" if _runtime_settings.get("auto_sync_include_rejected") is not None
+            "runtime"
+            if _runtime_settings.get("auto_sync_include_rejected") is not None
             else "environment"
         ),
     }

@@ -47,9 +47,7 @@ class RAGService:
         # Check embedding model readiness
         embedding_status = get_embedding_status()
         if not embedding_status["is_ready"]:
-            logger.warning(
-                "rag_embedding_not_ready, status=%s", embedding_status["status"]
-            )
+            logger.warning("rag_embedding_not_ready, status=%s", embedding_status["status"])
             return (
                 "Προσοχη: Το μοντελο embeddings δεν ειναι ετοιμο ακομα. "
                 "Δεν μπορω να αναζητησω σχετικα δεδομενα.",
@@ -112,8 +110,10 @@ class RAGService:
                 }
             )
 
-        context_string = "\n\n".join(context_parts) if context_parts else (
-            "Δεν βρεθηκαν σχετικα δεδομενα για το ερωτημα σου."
+        context_string = (
+            "\n\n".join(context_parts)
+            if context_parts
+            else ("Δεν βρεθηκαν σχετικα δεδομενα για το ερωτημα σου.")
         )
 
         logger.info(

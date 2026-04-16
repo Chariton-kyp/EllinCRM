@@ -26,14 +26,14 @@ logger = logging.getLogger(__name__)
 # Logical name → (provider, provider-specific model id)
 # Model ids match the working browser-extension ai_router (known-good).
 MODEL_REGISTRY: dict[str, tuple[str, str]] = {
-    "gemini-flash":  ("gemini",    "gemini-3.1-flash-lite-preview"),
+    "gemini-flash": ("gemini", "gemini-3.1-flash-lite-preview"),
     "claude-sonnet": ("anthropic", "claude-sonnet-4-6"),
-    "claude-haiku":  ("anthropic", "claude-haiku-4-5-20251001"),
+    "claude-haiku": ("anthropic", "claude-haiku-4-5-20251001"),
 }
 
 _API_KEY_BY_PROVIDER: dict[str, Any] = {
-    "anthropic": lambda: settings.anthropic_api_key,
-    "gemini":    lambda: settings.google_api_key,
+    "anthropic": lambda: settings.anthropic_api_key_value,
+    "gemini": lambda: settings.google_api_key_value,
 }
 
 
@@ -52,9 +52,7 @@ class AIRouter:
         try:
             provider, model_id = self._registry[model]
         except KeyError as exc:
-            raise ValueError(
-                f"Unknown model '{model}'. Known: {list(self._registry)}"
-            ) from exc
+            raise ValueError(f"Unknown model '{model}'. Known: {list(self._registry)}") from exc
         api_key = _API_KEY_BY_PROVIDER[provider]()
 
         # any-llm v1 has no explicit `timeout` parameter and forwards unknown
@@ -78,10 +76,8 @@ ai_router: AIRouter | None = None
 
 def create_ai_router() -> AIRouter:
     """Validate API keys and return a configured AIRouter instance."""
-    if not (settings.anthropic_api_key or settings.google_api_key):
-        raise RuntimeError(
-            "No LLM API keys configured (ANTHROPIC_API_KEY / GOOGLE_API_KEY)."
-        )
+    if not (settings.anthropic_api_key_value or settings.google_api_key_value):
+        raise RuntimeError("No LLM API keys configured (ANTHROPIC_API_KEY / GOOGLE_API_KEY).")
     return AIRouter(MODEL_REGISTRY)
 
 

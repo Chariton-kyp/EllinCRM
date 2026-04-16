@@ -60,7 +60,9 @@ class TestFormExtractorEdgeCases:
         result = extractor.extract(file_path)
 
         assert result.form_data is not None
-        assert "Γιώργος" in str(result.form_data.full_name) or result.form_data.full_name is not None
+        assert (
+            "Γιώργος" in str(result.form_data.full_name) or result.form_data.full_name is not None
+        )
 
     def test_extract_malformed_html(self, extractor, tmp_path):
         """Test extracting from malformed HTML."""
@@ -477,7 +479,11 @@ class TestGreekTextProcessing:
 
         for phone in test_phones:
             # Should handle Greek phone formats
-            result = extractor._normalize_phone(phone) if hasattr(extractor, '_normalize_phone') else phone
+            result = (
+                extractor._normalize_phone(phone)
+                if hasattr(extractor, "_normalize_phone")
+                else phone
+            )
             assert result is not None
 
     def test_greek_company_names(self):
@@ -509,6 +515,8 @@ class TestGreekTextProcessing:
 
         for amount_str, expected in test_amounts:
             # The extractor should handle Greek number format
-            result = extractor._parse_amount(amount_str) if hasattr(extractor, '_parse_amount') else None
+            result = (
+                extractor._parse_amount(amount_str) if hasattr(extractor, "_parse_amount") else None
+            )
             # Just verify no crash
             assert True

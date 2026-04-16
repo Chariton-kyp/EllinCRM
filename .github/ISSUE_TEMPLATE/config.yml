@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Chariton-kyp/EllinCRM/security/policy
+    about: Report a security issue privately — please do not open a public issue.
+  - name: Questions / discussion
+    url: mailto:haritos19@gmail.com
+    about: For general questions or commercial licensing enquiries, email the author.

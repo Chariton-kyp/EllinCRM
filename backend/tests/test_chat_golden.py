@@ -81,9 +81,7 @@ async def test_golden_query(golden: dict[str, Any]) -> None:
             },
         )
 
-    assert resp.status_code == 200, (
-        f"[{golden['id']}] HTTP {resp.status_code}: {resp.text[:300]}"
-    )
+    assert resp.status_code == 200, f"[{golden['id']}] HTTP {resp.status_code}: {resp.text[:300]}"
 
     data = resp.json()
     tools_called: list[str] = data.get("tools_called", [])
@@ -107,15 +105,13 @@ async def test_golden_query(golden: dict[str, Any]) -> None:
     # 3. Must-contain substrings (case-insensitive)
     for substring in must_contain:
         assert substring.lower() in answer_lower, (
-            f"[{golden['id']}] missing substring {substring!r}. "
-            f"Answer: {answer[:400]!r}"
+            f"[{golden['id']}] missing substring {substring!r}. Answer: {answer[:400]!r}"
         )
 
     # 4. Must-not-contain substrings
     for substring in must_not_contain:
         assert substring.lower() not in answer_lower, (
-            f"[{golden['id']}] forbidden substring {substring!r} found. "
-            f"Answer: {answer[:400]!r}"
+            f"[{golden['id']}] forbidden substring {substring!r} found. Answer: {answer[:400]!r}"
         )
 
 

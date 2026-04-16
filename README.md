@@ -4,6 +4,14 @@
 
 EllinCRM extracts structured data from forms, emails, and invoices using LLM-based extraction with per-field confidence scores, stores it with vector embeddings for hybrid semantic + keyword search, and provides a streaming AI chat agent that answers business questions in Greek with source citations — all under a human-in-the-loop approval workflow.
 
+![Records dashboard with per-field confidence and human-in-the-loop review](docs/assets/dashboard-records.png)
+
+> The records dashboard — forms, emails, and invoices side by side, with per-field confidence rings and one-click approve / edit / reject. Each extraction carries its source file and an audit trail.
+
+![Streaming Greek-language RAG chat agent with citations](docs/assets/chat-agent.png)
+
+> The chat agent answering a Greek business question by calling structured tools, running hybrid retrieval over the records, and citing every source record it used. Tokens stream in live over SSE.
+
 ---
 
 ## Highlights

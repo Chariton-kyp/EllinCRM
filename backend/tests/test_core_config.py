@@ -11,6 +11,19 @@ import pytest
 from app.core.config import Settings
 
 
+@pytest.fixture(autouse=True)
+def _isolate_settings_from_dotenv(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ensure Settings() in these tests ignores the developer's local .env file.
+
+    Without this, any value present in ``backend/.env`` would leak into tests
+    that try to assert "no value is configured" semantics, because pydantic-
+    settings reads the env file regardless of ``patch.dict(os.environ, ...)``.
+    """
+    # Clearing the env_file on the class-level ``model_config`` makes new
+    # Settings() instantiations within the test session use env vars only.
+    monkeypatch.setitem(Settings.model_config, "env_file", None)
+
+
 class TestSettings:
     """Tests for Settings class."""
 
@@ -79,7 +92,10 @@ class TestSettings:
             settings = Settings()
 
             assert settings.enable_ai_extraction is True
-            assert "gemma" in settings.embedding_model.lower() or "embedding" in settings.embedding_model.lower()
+            assert (
+                "gemma" in settings.embedding_model.lower()
+                or "embedding" in settings.embedding_model.lower()
+            )
 
     def test_fallback_embedding_model(self) -> None:
         """Test fallback embedding model is set."""
@@ -129,13 +145,19 @@ class TestSettings:
                 assert settings.log_level == level
 
     def test_huggingface_token_optional(self) -> None:
-        """Test HuggingFace token is optional."""
+        """Test HuggingFace token is optional and defaults to None."""
         with patch.dict(os.environ, {}, clear=True):
             settings = Settings()
+            # huggingface_token is a SecretStr | None; when not set, both the
+            # SecretStr field and the _value accessor are None.
             assert settings.huggingface_token is None
+            assert settings.huggingface_token_value is None
 
     def test_huggingface_token_from_env(self) -> None:
-        """Test HuggingFace token from environment."""
+        """Test HuggingFace token is loaded from the environment, wrapped in SecretStr."""
         with patch.dict(os.environ, {"HUGGINGFACE_TOKEN": "hf_test123"}, clear=True):
             settings = Settings()
-            assert settings.huggingface_token == "hf_test123"
+            # SecretStr.get_secret_value() or the `_value` accessor returns the raw token;
+            # repr-ing settings never leaks it.
+            assert settings.huggingface_token_value == "hf_test123"
+            assert "hf_test123" not in repr(settings)

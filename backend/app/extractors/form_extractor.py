@@ -3,7 +3,7 @@ Form Extractor for HTML contact forms.
 Uses BeautifulSoup for reliable HTML parsing.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from bs4 import BeautifulSoup
@@ -84,7 +84,7 @@ class FormExtractor(BaseExtractor[ContactFormData]):
             submission_date = self._parse_date(extracted.get("submission_date"))
             if not submission_date:
                 warnings.append("Could not parse submission date, using current time")
-                submission_date = datetime.utcnow()
+                submission_date = datetime.now(UTC).replace(tzinfo=None)
 
             # Parse priority
             priority = self._parse_priority(extracted.get("priority"))
@@ -287,9 +287,7 @@ class FormExtractor(BaseExtractor[ContactFormData]):
         service_lower = service.lower().strip()
         return SERVICE_MAP.get(service_lower, service)
 
-    def _calculate_confidence(
-        self, data: ContactFormData, warnings: list[str]
-    ) -> float:
+    def _calculate_confidence(self, data: ContactFormData, warnings: list[str]) -> float:
         """
         Calculate confidence score based on extracted data quality.
 

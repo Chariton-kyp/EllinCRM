@@ -2,6 +2,7 @@
 Unit tests for InvoiceExtractor.
 """
 
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -67,9 +68,7 @@ class TestInvoiceExtractor:
         assert data.vat_amount == Decimal("204.00")
         assert data.total_amount == Decimal("1054.00")
 
-    def test_extract_all_invoices(
-        self, extractor: InvoiceExtractor, invoices_path: Path
-    ) -> None:
+    def test_extract_all_invoices(self, extractor: InvoiceExtractor, invoices_path: Path) -> None:
         """Test extraction from all dummy data invoices."""
         invoice_files = list(invoices_path.glob("*.html"))
         if not invoice_files:
@@ -85,8 +84,9 @@ class TestInvoiceExtractor:
             # Verify VAT calculation (24%)
             data = result.invoice_data
             expected_vat = data.net_amount * Decimal("24") / Decimal("100")
-            assert abs(data.vat_amount - expected_vat) < Decimal("1"), \
+            assert abs(data.vat_amount - expected_vat) < Decimal("1"), (
                 f"VAT mismatch in {invoice_file.name}"
+            )
 
     def test_missing_file(self, extractor: InvoiceExtractor) -> None:
         """Test extraction from non-existent file."""
@@ -108,9 +108,7 @@ class TestInvoiceExtractor:
         # Test from filename
         html = "<html><body>Some content</body></html>"
         soup = BeautifulSoup(html, "html.parser")
-        assert extractor._extract_invoice_number(
-            soup, "invoice_TF-2024-002.html"
-        ) == "TF-2024-002"
+        assert extractor._extract_invoice_number(soup, "invoice_TF-2024-002.html") == "TF-2024-002"
 
     def test_date_extraction(self, extractor: InvoiceExtractor) -> None:
         """Test date extraction."""
@@ -138,7 +136,7 @@ class TestInvoiceExtractor:
         """Test line items extraction from table."""
         from bs4 import BeautifulSoup
 
-        html = '''
+        html = """
         <table class="invoice-table">
             <thead><tr><th>Περιγραφή</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
             <tbody>
@@ -146,7 +144,7 @@ class TestInvoiceExtractor:
                 <tr><td>Item B</td><td>3</td><td>€20.00</td><td>€60.00</td></tr>
             </tbody>
         </table>
-        '''
+        """
         soup = BeautifulSoup(html, "html.parser")
         items = extractor._extract_line_items(soup)
 
@@ -162,7 +160,7 @@ class TestInvoiceExtractor:
 
         data = InvoiceData(
             invoice_number="TF-2024-001",
-            invoice_date=extractor._extract_date.__func__.__globals__["datetime"].utcnow(),
+            invoice_date=datetime.now(UTC).replace(tzinfo=None),
             client_name="Test Client",
             net_amount=Decimal("100.00"),
             vat_rate=Decimal("24"),
@@ -176,13 +174,13 @@ class TestInvoiceExtractor:
 
     def test_validate_vat_mismatch(self, extractor: InvoiceExtractor) -> None:
         """Test validation catches VAT mismatch."""
-        from datetime import datetime
+        from datetime import datetime, UTC
 
         from app.models.schemas import InvoiceData
 
         data = InvoiceData(
             invoice_number="TF-2024-001",
-            invoice_date=datetime.utcnow(),
+            invoice_date=datetime.now(UTC).replace(tzinfo=None),
             client_name="Test Client",
             net_amount=Decimal("100.00"),
             vat_rate=Decimal("24"),

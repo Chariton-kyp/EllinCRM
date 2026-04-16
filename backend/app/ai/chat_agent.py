@@ -26,6 +26,7 @@ See `.planning/chat-agent-v2/SPEC.md` for the full architecture rationale.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from typing import Any
 
 from app.ai.chat_tools import CHAT_TOOLS
@@ -142,6 +143,7 @@ async def _build_checkpointer() -> Any:
     # Detect pytest at runtime — no checkpointer during tests to avoid
     # cross-event-loop binding issues.
     import sys
+
     if "pytest" in sys.modules:
         logger.info("checkpointer_skipped_in_pytest")
         return None
@@ -188,15 +190,11 @@ async def _build_checkpointer() -> Any:
         logger.info("checkpointer_initialized", backend="postgres")
         return saver
     except Exception as exc:
-        logger.warning(
-            "checkpointer_init_failed", error=str(exc), exc_type=type(exc).__name__
-        )
+        logger.warning("checkpointer_init_failed", error=str(exc), exc_type=type(exc).__name__)
         # Clean up the partially-opened pool if we got that far
         if _checkpointer_pool is not None:
-            try:
+            with contextlib.suppress(Exception):
                 await _checkpointer_pool.close()
-            except Exception:
-                pass
             _checkpointer_pool = None
         return None
 
@@ -222,7 +220,8 @@ async def get_chat_agent() -> Any:
         if _agent_singleton is not None:
             return _agent_singleton
 
-        if not settings.anthropic_api_key:
+        anthropic_key = settings.anthropic_api_key_value
+        if not anthropic_key:
             raise RuntimeError(
                 "ANTHROPIC_API_KEY not configured. Chat agent requires Claude Sonnet."
             )
@@ -231,6 +230,7 @@ async def get_chat_agent() -> Any:
         # pay the import cost unless the chat is actually used.
         try:
             from langchain_anthropic import ChatAnthropic
+
             # LangGraph 1.1+: create_react_agent moved to langchain.agents.
             # Fallback to the old import path for compatibility with 1.0.x.
             try:
@@ -245,7 +245,7 @@ async def get_chat_agent() -> Any:
 
         model = ChatAnthropic(
             model="claude-sonnet-4-6",
-            anthropic_api_key=settings.anthropic_api_key,
+            anthropic_api_key=anthropic_key,
             temperature=0,
             max_tokens=2048,
             # Native streaming for token delta events

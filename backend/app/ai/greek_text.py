@@ -17,31 +17,112 @@ import unicodedata
 # Greek accent mapping for normalization
 GREEK_ACCENT_MAP = {
     # Lowercase with accents
-    'ά': 'α', 'έ': 'ε', 'ή': 'η', 'ί': 'ι', 'ό': 'ο', 'ύ': 'υ', 'ώ': 'ω',
+    "ά": "α",
+    "έ": "ε",
+    "ή": "η",
+    "ί": "ι",
+    "ό": "ο",
+    "ύ": "υ",
+    "ώ": "ω",
     # Uppercase with accents
-    'Ά': 'α', 'Έ': 'ε', 'Ή': 'η', 'Ί': 'ι', 'Ό': 'ο', 'Ύ': 'υ', 'Ώ': 'ω',
+    "Ά": "α",
+    "Έ": "ε",
+    "Ή": "η",
+    "Ί": "ι",
+    "Ό": "ο",
+    "Ύ": "υ",
+    "Ώ": "ω",
     # Dialytika (dieresis)
-    'ϊ': 'ι', 'ΐ': 'ι', 'ϋ': 'υ', 'ΰ': 'υ',
-    'Ϊ': 'ι', 'Ϋ': 'υ',
+    "ϊ": "ι",
+    "ΐ": "ι",
+    "ϋ": "υ",
+    "ΰ": "υ",
+    "Ϊ": "ι",
+    "Ϋ": "υ",
 }
 
 # Greek stopwords (common words to optionally filter out)
 GREEK_STOPWORDS: set[str] = {
     # Articles
-    "ο", "η", "το", "οι", "τα", "των", "του", "της", "τον", "την",
+    "ο",
+    "η",
+    "το",
+    "οι",
+    "τα",
+    "των",
+    "του",
+    "της",
+    "τον",
+    "την",
     # Prepositions
-    "σε", "από", "για", "με", "προς", "κατά", "μετά", "χωρίς", "στο", "στη", "στον", "στην",
+    "σε",
+    "από",
+    "για",
+    "με",
+    "προς",
+    "κατά",
+    "μετά",
+    "χωρίς",
+    "στο",
+    "στη",
+    "στον",
+    "στην",
     # Conjunctions
-    "και", "ή", "αλλά", "ότι", "αν", "όταν", "ενώ", "επειδή",
+    "και",
+    "ή",
+    "αλλά",
+    "ότι",
+    "αν",
+    "όταν",
+    "ενώ",
+    "επειδή",
     # Pronouns
-    "αυτό", "αυτός", "αυτή", "εγώ", "εσύ", "εμείς", "εσείς",
+    "αυτό",
+    "αυτός",
+    "αυτή",
+    "εγώ",
+    "εσύ",
+    "εμείς",
+    "εσείς",
     # Common verbs
-    "είναι", "ήταν", "έχω", "έχει", "πρέπει", "μπορώ", "μπορεί",
+    "είναι",
+    "ήταν",
+    "έχω",
+    "έχει",
+    "πρέπει",
+    "μπορώ",
+    "μπορεί",
     # Other common words
-    "πως", "πώς", "πού", "που", "να", "θα", "δε", "δεν", "μη", "μην",
+    "πως",
+    "πώς",
+    "πού",
+    "που",
+    "να",
+    "θα",
+    "δε",
+    "δεν",
+    "μη",
+    "μην",
     # English stopwords (for mixed content)
-    "the", "a", "an", "is", "are", "was", "were", "be", "been",
-    "and", "or", "but", "if", "of", "to", "in", "on", "for", "with",
+    "the",
+    "a",
+    "an",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "and",
+    "or",
+    "but",
+    "if",
+    "of",
+    "to",
+    "in",
+    "on",
+    "for",
+    "with",
 }
 
 
@@ -76,16 +157,14 @@ def normalize_greek_text(text: str) -> str:
 
     # Additional Unicode normalization (NFD decomposition then remove combining marks)
     # This handles any remaining diacritics
-    text = unicodedata.normalize('NFD', text)
-    text = ''.join(char for char in text if unicodedata.category(char) != 'Mn')
+    text = unicodedata.normalize("NFD", text)
+    text = "".join(char for char in text if unicodedata.category(char) != "Mn")
 
     return text
 
 
 def tokenize_for_search(
-    text: str,
-    remove_stopwords: bool = False,
-    min_token_length: int = 2
+    text: str, remove_stopwords: bool = False, min_token_length: int = 2
 ) -> list[str]:
     """
     Tokenize text for search with optional stopword removal.
@@ -109,7 +188,7 @@ def tokenize_for_search(
     normalized = normalize_greek_text(text)
 
     # Split on non-word characters
-    tokens = re.split(r'[^\w]+', normalized)
+    tokens = re.split(r"[^\w]+", normalized)
 
     # Filter tokens
     result = []
@@ -145,35 +224,41 @@ def extract_search_text(record_data: dict) -> str:
     # Form data
     if record_data.get("form_data"):
         form = record_data["form_data"]
-        parts.extend([
-            form.get("full_name", ""),
-            form.get("company", ""),
-            form.get("email", ""),
-            form.get("message", ""),
-            form.get("service_interest", ""),
-        ])
+        parts.extend(
+            [
+                form.get("full_name", ""),
+                form.get("company", ""),
+                form.get("email", ""),
+                form.get("message", ""),
+                form.get("service_interest", ""),
+            ]
+        )
 
     # Email data
     if record_data.get("email_data"):
         email = record_data["email_data"]
-        parts.extend([
-            email.get("sender_name", ""),
-            email.get("sender_email", ""),
-            email.get("subject", ""),
-            email.get("body", ""),
-            email.get("company", ""),
-            email.get("vendor_name", ""),
-        ])
+        parts.extend(
+            [
+                email.get("sender_name", ""),
+                email.get("sender_email", ""),
+                email.get("subject", ""),
+                email.get("body", ""),
+                email.get("company", ""),
+                email.get("vendor_name", ""),
+            ]
+        )
 
     # Invoice data
     if record_data.get("invoice_data"):
         invoice = record_data["invoice_data"]
-        parts.extend([
-            invoice.get("client_name", ""),
-            invoice.get("invoice_number", ""),
-            invoice.get("client_address", ""),
-            invoice.get("notes", ""),
-        ])
+        parts.extend(
+            [
+                invoice.get("client_name", ""),
+                invoice.get("invoice_number", ""),
+                invoice.get("client_address", ""),
+                invoice.get("notes", ""),
+            ]
+        )
         # Add item descriptions
         for item in invoice.get("items", []):
             parts.append(item.get("description", ""))

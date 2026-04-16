@@ -17,8 +17,8 @@ from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.ai.embeddings import get_embedding_status, start_embedding_model_loading
 from app.ai.ai_router import get_ai_router, init_ai_router
+from app.ai.embeddings import get_embedding_status, start_embedding_model_loading
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
 from app.core.rate_limit import limiter
@@ -201,7 +201,9 @@ async def api_status() -> dict[str, Any]:
         "ai": {
             "embedding_model_primary": settings.embedding_model,
             "embedding_model_fallback": settings.fallback_embedding_model,
-            "llm_models": ["gemini-flash", "claude-sonnet", "claude-haiku"] if get_ai_router() else [],
+            "llm_models": ["gemini-flash", "claude-sonnet", "claude-haiku"]
+            if get_ai_router()
+            else [],
             "vector_database": "pgvector",
             "search_algorithm": "HNSW",
         },

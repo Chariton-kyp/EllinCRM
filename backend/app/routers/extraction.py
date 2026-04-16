@@ -232,8 +232,7 @@ async def extract_invoice(
     if file_path.suffix.lower() == ".pdf":
         if not PDFInvoiceExtractor.is_supported():
             raise HTTPException(
-                status_code=501,
-                detail="PDF extraction not supported - pdfplumber not installed"
+                status_code=501, detail="PDF extraction not supported - pdfplumber not installed"
             )
         pdf_extractor = PDFInvoiceExtractor()
         result = pdf_extractor.extract(file_path)
@@ -344,7 +343,9 @@ async def extract_all_files(
                 # PDF invoices remain regex-only
                 if invoice_file.suffix.lower() == ".pdf":
                     if not pdf_invoice_extractor:
-                        errors.append({"file": invoice_file.name, "error": "PDF extraction not supported"})
+                        errors.append(
+                            {"file": invoice_file.name, "error": "PDF extraction not supported"}
+                        )
                         continue
                     result = pdf_invoice_extractor.extract(invoice_file)
                     method = "regex"

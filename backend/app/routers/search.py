@@ -51,14 +51,11 @@ class SearchRequest(BaseModel):
 
     query: str = Field(..., min_length=1, max_length=1000, description="Search query")
     limit: int = Field(10, ge=1, le=100, description="Maximum results")
-    min_similarity: float = Field(
-        0.3, ge=0.0, le=1.0, description="Minimum similarity threshold"
-    )
+    min_similarity: float = Field(0.3, ge=0.0, le=1.0, description="Minimum similarity threshold")
     record_type: str | None = Field(None, description="Filter by record type")
     status: str | None = Field(None, description="Filter by status")
     search_mode: Literal["hybrid", "semantic", "keyword"] = Field(
-        "hybrid",
-        description="Search mode: hybrid (default), semantic, or keyword"
+        "hybrid", description="Search mode: hybrid (default), semantic, or keyword"
     )
 
 
@@ -295,9 +292,7 @@ async def find_similar_records(
 
     except Exception as e:
         logger.error("find_similar_failed", error=str(e), record_id=str(record_id))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to find similar records: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to find similar records: {str(e)}")
 
 
 @router.get("/stats", response_model=EmbeddingStatsResponse)
@@ -315,9 +310,7 @@ async def get_embedding_stats(
     """
     try:
         # Get embedding count from database (doesn't need model)
-        result = await db.execute(
-            text("SELECT COUNT(*) FROM document_embeddings")
-        )
+        result = await db.execute(text("SELECT COUNT(*) FROM document_embeddings"))
         total_embeddings = result.scalar() or 0
 
         # Get records without embeddings count
@@ -418,9 +411,7 @@ async def generate_embeddings(
 
     except Exception as e:
         logger.error("embedding_generation_failed", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to generate embeddings: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to generate embeddings: {str(e)}")
 
 
 @router.post("/embeddings/refresh-hybrid", response_model=GenerateEmbeddingsResponse)
@@ -437,9 +428,7 @@ async def refresh_hybrid_search_columns(
         from app.ai.greek_text import normalize_greek_text, tokenize_for_search
 
         # Get all embeddings
-        result = await db.execute(
-            text("SELECT id, content_text FROM document_embeddings")
-        )
+        result = await db.execute(text("SELECT id, content_text FROM document_embeddings"))
         rows = result.fetchall()
 
         if not rows:
@@ -485,9 +474,7 @@ async def refresh_hybrid_search_columns(
 
     except Exception as e:
         logger.error("hybrid_refresh_failed", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to refresh hybrid columns: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to refresh hybrid columns: {str(e)}")
 
 
 def _get_highlight(record, query: str) -> str | None:

@@ -2,7 +2,7 @@
 Unit tests for EmailExtractor.
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -44,9 +44,7 @@ class TestEmailExtractor:
         finally:
             file_path.unlink()
 
-    def test_extract_client_inquiry(
-        self, extractor: EmailExtractor, emails_path: Path
-    ) -> None:
+    def test_extract_client_inquiry(self, extractor: EmailExtractor, emails_path: Path) -> None:
         """Test extraction from a client inquiry email."""
         email_file = emails_path / "email_01.eml"
         if not email_file.exists():
@@ -86,9 +84,7 @@ class TestEmailExtractor:
             "Καθαρή Αξία: €1,000.00\n"
             "Σύνολο: €1,240.00\n"
         )
-        with NamedTemporaryFile(
-            mode="w", suffix=".eml", delete=False, encoding="utf-8"
-        ) as f:
+        with NamedTemporaryFile(mode="w", suffix=".eml", delete=False, encoding="utf-8") as f:
             f.write(synthetic)
             f.flush()
             file_path = Path(f.name)
@@ -101,9 +97,7 @@ class TestEmailExtractor:
         finally:
             file_path.unlink()
 
-    def test_extract_all_emails(
-        self, extractor: EmailExtractor, emails_path: Path
-    ) -> None:
+    def test_extract_all_emails(self, extractor: EmailExtractor, emails_path: Path) -> None:
         """Test extraction from all dummy data emails."""
         email_files = list(emails_path.glob("*.eml"))
         if not email_files:
@@ -141,16 +135,20 @@ class TestEmailExtractor:
     def test_email_classification(self, extractor: EmailExtractor) -> None:
         """Test email classification logic."""
         # Invoice keywords
-        assert extractor._classify_email(
-            "Τιμολόγιο #TF-2024-001",
-            "Παρακαλώ βρείτε συνημμένο το τιμολόγιο. Ποσό: €1,000"
-        ) == EmailType.INVOICE_NOTIFICATION
+        assert (
+            extractor._classify_email(
+                "Τιμολόγιο #TF-2024-001", "Παρακαλώ βρείτε συνημμένο το τιμολόγιο. Ποσό: €1,000"
+            )
+            == EmailType.INVOICE_NOTIFICATION
+        )
 
         # Client inquiry
-        assert extractor._classify_email(
-            "Αίτημα για CRM",
-            "Χρειαζόμαστε σύστημα CRM. Στοιχεία επικοινωνίας..."
-        ) == EmailType.CLIENT_INQUIRY
+        assert (
+            extractor._classify_email(
+                "Αίτημα για CRM", "Χρειαζόμαστε σύστημα CRM. Στοιχεία επικοινωνίας..."
+            )
+            == EmailType.CLIENT_INQUIRY
+        )
 
     def test_amount_parsing(self, extractor: EmailExtractor) -> None:
         """Test amount string parsing."""
@@ -165,17 +163,17 @@ class TestEmailExtractor:
 
     def test_service_interest_extraction(self, extractor: EmailExtractor) -> None:
         """Test service interest extraction."""
-        assert extractor._extract_service_interest(
-            "CRM Request", "We need a CRM system"
-        ) == "CRM System"
+        assert (
+            extractor._extract_service_interest("CRM Request", "We need a CRM system")
+            == "CRM System"
+        )
 
-        assert extractor._extract_service_interest(
-            "Website", "Θέλουμε ιστοσελίδα"
-        ) == "Web Development"
+        assert (
+            extractor._extract_service_interest("Website", "Θέλουμε ιστοσελίδα")
+            == "Web Development"
+        )
 
-        assert extractor._extract_service_interest(
-            "General", "Some random text"
-        ) is None
+        assert extractor._extract_service_interest("General", "Some random text") is None
 
     def test_validate_valid_email(self, extractor: EmailExtractor) -> None:
         """Test validation of valid email data."""
@@ -186,7 +184,7 @@ class TestEmailExtractor:
             sender_email="test@example.gr",
             recipient_email="info@ellincrm.gr",
             subject="Test Subject",
-            date_sent=datetime.utcnow(),
+            date_sent=datetime.now(UTC).replace(tzinfo=None),
             body="Test body",
             company="Test Company",
         )

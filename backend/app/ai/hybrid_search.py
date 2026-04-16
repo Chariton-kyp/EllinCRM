@@ -440,6 +440,7 @@ class HybridSearchService:
         Returns the top-`limit` documents sorted by combined RRF score, with
         original per-signal scores preserved for observability.
         """
+
         # Per-list rank maps: record_id → 1-indexed rank
         def build_ranks(results: list[dict[str, Any]]) -> dict[str, int]:
             return {r["record_id"]: rank for rank, r in enumerate(results, start=1)}
@@ -526,8 +527,7 @@ class HybridSearchService:
             final_results = [
                 r
                 for r in final_results
-                if max(r["semantic_score"], r["keyword_score"], r["trigram_score"])
-                >= min_score
+                if max(r["semantic_score"], r["keyword_score"], r["trigram_score"]) >= min_score
             ]
 
         return final_results[:limit]

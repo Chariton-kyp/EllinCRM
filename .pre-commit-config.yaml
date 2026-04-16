@@ -1,0 +1,38 @@
+# EllinCRM pre-commit hooks.
+#
+# Install once:
+#     pip install pre-commit
+#     pre-commit install
+#
+# Run manually across the whole tree:
+#     pre-commit run --all-files
+#
+# CI enforces the same ruff checks (see .github/workflows/ci.yml), but
+# running them locally catches violations before they reach a PR.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(backend/tests/golden/|.*\.md)$
+      - id: end-of-file-fixer
+        exclude: ^docs/assets/
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1500"]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  # Ruff — single tool for Python linting + formatting + import sorting.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.0
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        files: ^backend/
+      - id: ruff-format
+        files: ^backend/

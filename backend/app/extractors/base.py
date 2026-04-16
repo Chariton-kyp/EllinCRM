@@ -4,7 +4,7 @@ Base extractor class defining the interface for all extractors.
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Generic, TypeVar
+from typing import TypeVar
 from uuid import uuid4
 
 from app.core.logging import audit_logger, get_logger
@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 T = TypeVar("T")
 
 
-class BaseExtractor(ABC, Generic[T]):
+class BaseExtractor[T](ABC):
     """
     Abstract base class for all data extractors.
 

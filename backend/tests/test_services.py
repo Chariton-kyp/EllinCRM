@@ -315,6 +315,7 @@ class TestExportService:
         assert filename.endswith(".json")
         assert content_type == "application/json; charset=utf-8"
         import json
+
         data = json.loads(content)
         assert "records" in data
         assert data["record_count"] == 1
@@ -344,7 +345,9 @@ class TestExportService:
             await export_service.export_records(request)
 
     @pytest.mark.anyio
-    async def test_export_invoice_record(self, export_service, mock_repository, sample_invoice_record):
+    async def test_export_invoice_record(
+        self, export_service, mock_repository, sample_invoice_record
+    ):
         """Test exporting invoice records."""
         mock_repository.get_exportable_records.return_value = [sample_invoice_record]
         mock_repository.update.return_value = sample_invoice_record

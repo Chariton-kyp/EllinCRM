@@ -87,6 +87,26 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
 
+[tool.ruff.lint.per-file-ignores]
+# FastAPI routers legitimately raise HTTPException inside except blocks
+# without `from err`, to avoid leaking internal stack traces to clients.
+# They also accept framework-injected args (e.g. `request`) that may be
+# unused in individual handlers.
+"app/routers/*.py" = ["B904", "ARG001"]
+
+# FastAPI lifespan + middleware signatures require parameters that may be
+# unused in this entrypoint.
+"app/main.py" = ["ARG001"]
+
+# Third-party Google Sheets service wraps the Google API SDK; several
+# methods intentionally match Google's interface signatures and are
+# stubs for future capability, so unused args are expected.
+"app/services/google_sheets_service.py" = ["ARG002", "B904", "SIM105"]
+
+# Export service contains presentation-layer helpers whose signatures
+# mirror openpyxl's style API.
+"app/services/export_service.py" = ["ARG002"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true

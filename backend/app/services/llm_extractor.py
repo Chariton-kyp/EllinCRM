@@ -9,7 +9,7 @@ extraction router.
 """
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from uuid import uuid4
 
@@ -42,8 +42,7 @@ FORM_SYSTEM_PROMPT = (
     "contact form. Return JSON with field-level confidence scores. "
     "Fields: full_name, email, phone, company, service_interest, message, "
     "submission_date (ISO format), priority (low/medium/high). "
-    "For each field, also return a confidence score 0-1."
-    + _CONFIDENCE_SUFFIX
+    "For each field, also return a confidence score 0-1." + _CONFIDENCE_SUFFIX
 )
 
 EMAIL_SYSTEM_PROMPT = (
@@ -52,8 +51,7 @@ EMAIL_SYSTEM_PROMPT = (
     "Return JSON with field-level confidence scores. "
     "Fields: email_type, sender_name, sender_email, recipient_email, subject, "
     "date_sent (ISO format), body, phone, company, position, service_interest, "
-    "invoice_number, invoice_amount, vendor_name."
-    + _CONFIDENCE_SUFFIX
+    "invoice_number, invoice_amount, vendor_name." + _CONFIDENCE_SUFFIX
 )
 
 INVOICE_SYSTEM_PROMPT = (
@@ -63,14 +61,14 @@ INVOICE_SYSTEM_PROMPT = (
     "client_address, client_vat_number (AFM), items (array of "
     "{description, quantity, unit_price, total}), net_amount, vat_rate, "
     "vat_amount, total_amount, payment_terms, notes. "
-    "All monetary values as numbers (not strings)."
-    + _CONFIDENCE_SUFFIX
+    "All monetary values as numbers (not strings)." + _CONFIDENCE_SUFFIX
 )
 
 
 # ---------------------------------------------------------------------------
 # Helper: robust date parsing
 # ---------------------------------------------------------------------------
+
 
 def _parse_date(value) -> datetime | None:
     """Parse a date string with multiple fallback strategies."""
@@ -86,6 +84,7 @@ def _parse_date(value) -> datetime | None:
         pass
     try:
         from dateutil import parser as dateutil_parser
+
         return dateutil_parser.parse(value)
     except Exception:
         return None
@@ -104,6 +103,7 @@ def _to_decimal(value) -> Decimal | None:
 # ---------------------------------------------------------------------------
 # LLMExtractor
 # ---------------------------------------------------------------------------
+
 
 class LLMExtractor:
     """LLM-based document extraction using Gemini Flash via any-llm (Mozilla.ai)."""
@@ -251,7 +251,7 @@ class LLMExtractor:
         # Parse date
         date_sent = _parse_date(data.get("date_sent"))
         if date_sent is None:
-            date_sent = datetime.utcnow()
+            date_sent = datetime.now(UTC).replace(tzinfo=None)
             warnings.append("Could not parse date_sent, using current time")
 
         # Parse invoice_amount
@@ -309,7 +309,7 @@ class LLMExtractor:
         # Parse date
         invoice_date = _parse_date(data.get("invoice_date"))
         if invoice_date is None:
-            invoice_date = datetime.utcnow()
+            invoice_date = datetime.now(UTC).replace(tzinfo=None)
             warnings.append("Could not parse invoice_date, using current time")
 
         # Parse items

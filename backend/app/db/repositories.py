@@ -217,8 +217,6 @@ class RecordRepository:
         Returns:
             ExtractionRecordDB if found, None otherwise.
         """
-        stmt = select(ExtractionRecordDB).where(
-            ExtractionRecordDB.source_file == source_file
-        )
+        stmt = select(ExtractionRecordDB).where(ExtractionRecordDB.source_file == source_file)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
