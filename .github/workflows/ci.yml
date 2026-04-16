@@ -154,20 +154,18 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install linters
-        run: |
-          pip install ruff black isort mypy
+        # ruff bundles linting, formatting, and import sorting in one tool,
+        # so there is no need to also install black or isort. mypy is kept
+        # for static typing but is advisory for now.
+        run: pip install ruff mypy
 
-      - name: Run Ruff (linting)
+      - name: Ruff — lint
         working-directory: backend
-        run: ruff check app/ --output-format=github || true
+        run: ruff check app/ --output-format=github
 
-      - name: Run Black (formatting check)
+      - name: Ruff — format check
         working-directory: backend
-        run: black --check app/ || true
-
-      - name: Run isort (import sorting)
-        working-directory: backend
-        run: isort --check-only app/ || true
+        run: ruff format --check app/ tests/
 
   # ============================================
   # Security Scan
