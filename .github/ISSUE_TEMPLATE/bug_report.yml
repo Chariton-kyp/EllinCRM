@@ -1,0 +1,70 @@
+name: Bug report
+description: Something in EllinCRM does not behave as documented or expected.
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. The more specific you can be, the
+        faster we can diagnose and fix it.
+
+        ⚠️ **Security issues** — please do **not** file them here. See
+        [SECURITY.md](../SECURITY.md) for private disclosure.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One sentence describing the bug.
+      placeholder: e.g. "Invoice extractor returns wrong total when the file uses comma decimals"
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Smallest possible sequence that triggers the bug.
+      placeholder: |
+        1. `docker compose --profile dev up --build`
+        2. Upload `dummy_data/invoices/invoice_EC-2025-003.html`
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include the full error / stack trace / relevant log lines.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: EllinCRM version / commit
+      description: "Output of `git rev-parse --short HEAD`, or the release tag."
+      placeholder: "v1.0.0 / abc1234"
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Docker version, Python/Node versions if running outside Docker.
+      placeholder: |
+        - OS: Ubuntu 24.04
+        - Docker: 28.0
+        - Python: 3.12 (if local dev)
+    validations:
+      required: false
